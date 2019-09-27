@@ -786,4 +786,14 @@ namespace PdfWriter
 		double pPattern[] ={ dX0, dY0, dR0, dX1, dY1, dR1 };
 		return CreateShading(pPage, pPattern, false, pColors, pAlphas, pPoints, nCount, pExtGrState);
 	}
+	
+	void CDocument::WriteFieldExportStream(const std::wstring& sContent)
+	{
+		CDictObject* cDict = new CDictObject(m_pXref);
+
+		std::string json = NSFile::CUtf8Converter::GetUtf8StringFromUnicode(sContent);
+
+		cDict->Add("Type", "FieldStream");
+		cDict->GetStream()->WriteStr(json.c_str());
+	}
 }
