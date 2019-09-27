@@ -298,6 +298,14 @@ public:
 		m_bUseTransformCoordsToIdentity = false;
 		return S_OK;
 	}
+
+// oleObject Export -----------------------------------------------------------------------
+	
+	// Export OleObject Fields info as Json/Xml contents to PdfRenderer
+	virtual HRESULT ExportOleObjectField(const std::wstring& jContent)
+	{
+		return S_OK;
+	}
 };
 
 #define PROPERTY_RENDERER(NameBase, Name, Type)			\
