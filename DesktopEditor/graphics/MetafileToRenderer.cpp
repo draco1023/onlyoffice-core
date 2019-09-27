@@ -344,6 +344,14 @@ namespace NSOnlineOfficeBinToPdf
 
 				break;
 			}
+			case ctFieldCommandJSON: // Read OleObject Coordinates as UTF-16 string
+			{
+				int nLen = ReadInt(current, curindex);
+				std::wstring sFieldExportJson = ReadString16(current, curindex, nLen);
+				
+				pRenderer->ExportOleObjectField(sFieldExportJson);
+				break;
+			}
 			case ctPenColor:
 			{
 				pRenderer->put_PenColor(ReadInt(current, curindex));
