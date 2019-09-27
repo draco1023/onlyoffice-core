@@ -204,6 +204,9 @@ staticlib {
 }
 
 core_x2t {
+core_linux {
+    QMAKE_CXXFLAGS += -Wl,--allow-multiple-definition
+}
 core_windows {
     QMAKE_CXXFLAGS += /bigobj
 } else {
