@@ -222,6 +222,11 @@ public:
     HRESULT OnlineWordToPdfFromBinary(const std::wstring& wsSrcFile, const std::wstring& wsDstFile, const bool& bIsUsePicker = false);
 	HRESULT DrawImageWith1bppMask(IGrObject* pImage, NSImages::CPixJbig2* pMaskBuffer, const unsigned int& unMaskWidth, const unsigned int& unMaskHeight, const double& dX, const double& dY, const double& dW, const double& dH);
 
+	//----------------------------------------------------------------------------------------
+	// OleObject Fiels Rendering
+	//----------------------------------------------------------------------------------------
+	HRESULT ExportOleObjectField(const std::wstring& jContent);
+
     NSFonts::IApplicationFonts* GetApplicationFonts();
 
 private:

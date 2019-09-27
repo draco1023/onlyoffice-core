@@ -1516,6 +1516,13 @@ HRESULT CPdfRenderer::DrawImageWith1bppMask(IGrObject* pImage, NSImages::CPixJbi
 	return S_OK;
 }
 
+HRESULT CPdfRenderer::ExportOleObjectField(const std::wstring& jContent)
+{
+    m_pDocument->WriteFieldExportStream(jContent);
+
+    return S_OK;
+}
+
 NSFonts::IApplicationFonts* CPdfRenderer::GetApplicationFonts()
 {
     return m_pAppFonts;
