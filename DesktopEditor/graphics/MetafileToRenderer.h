@@ -139,6 +139,9 @@ namespace NSOnlineOfficeBinToPdf
 		ctDrawImage					    = 110,
 		ctDrawImageFromFile			    = 111,
 
+		// OleObjects
+		ctFieldCommandJSON				= 115,
+
 		ctSetParams					    = 120,
 
 		ctBeginCommand					= 121,
