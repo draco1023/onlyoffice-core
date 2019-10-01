@@ -154,6 +154,7 @@ message($$CORE_BUILDS_PLATFORM_PREFIX/$$CORE_BUILDS_CONFIGURATION_PREFIX)
 CONFIG += c++11
 
 core_linux {
+    QMAKE_LFLAGS += -Wl,--allow-multiple-definition
 core_static_link_libstd {
     QMAKE_LFLAGS += -static-libstdc++ -static-libgcc
     message(core_static_link_libstd)
@@ -204,9 +205,6 @@ staticlib {
 }
 
 core_x2t {
-core_linux {
-    QMAKE_CXXFLAGS += -Wl,--allow-multiple-definition
-}
 core_windows {
     QMAKE_CXXFLAGS += /bigobj
 } else {
