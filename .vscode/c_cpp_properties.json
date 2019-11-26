@@ -1,0 +1,45 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Debug C++ Mac Config",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/DesktopEditor/common/*",
+                "${workspaceFolder}/Common/*",
+                "${workspaceFolder}/Common/3dParty/openssl/openssl/include/*",
+                "${workspaceFolder}/Common/3dParty/boost/boost_1_58_0/boost/*",
+                "/usr/local/Cellar/qt/5.13.0/include/**",
+                "/usr/local/include"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "${default}",
+                "/System/Library/Frameworks",
+                "/Library/Frameworks",
+                "/usr/local/Cellar/qt/5.13.0/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "clang-x64"
+        },
+        {
+            "name": "C++ Mac",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/**"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db"
+            },
+            "intelliSenseMode": "clang-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cppStandard": "c++11",
+            "cStandard": "c11"
+        }
+    ]
+}
