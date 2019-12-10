@@ -116,6 +116,71 @@ build: ## Assemble x2t converter from Core build artifacts
 	cp -r $(CORE_COMMON_DIR)/3dParty/cef/$(TARGET_BUILD)/build/. $(BUILD_DIR)/$(TARGET_BUILD)/HtmlFileInternal \
 		&& echo "$(GREEN)Copy 'cef lib' \t ./$(TARGET_BUILD)/HtmlFileInternal$(NC)"
 	
+	# Create DoctRenderer.config
+	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
+		&& echo "$(GREEN)Created 'config' \t ./$(TARGET_BUILD)/DoctRenderer.config$(NC)"
+	<Settings>
+		<file>./sdkjs/common/Native/native.js</file>
+		<file>./sdkjs/common/Native/jquery_native.js</file>
+
+		<file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
+
+		<file>./sdkjs/vendor/AllFonts.js</file>
+		<htmlfile>./sdkjs/vendor/jquery/jquery.min.js</htmlfile>
+		<DoctSdk>
+			<file>./sdkjs/word/sdk-all-min.js</file>
+			<file>./sdkjs/common/libfont/js/fonts.js</file>
+			<file>./sdkjs/word/sdk-all.js</file>
+		</DoctSdk>
+		<PpttSdk>
+			<file>./sdkjs/slide/sdk-all-min.js</file>
+			<file>./sdkjs/common/libfont/js/fonts.js</file>
+			<file>./sdkjs/slide/sdk-all.js</file>
+		</PpttSdk>
+		<XlstSdk>
+			<file>./sdkjs/cell/sdk-all-min.js</file>
+			<file>./sdkjs/common/libfont/js/fonts.js</file>
+			<file>./sdkjs/cell/sdk-all.js</file>
+		</XlstSdk>
+	</Settings>
+	EOF
+
+	# Create params.xml
+	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/params.xml \
+		&& echo "$(GREEN)Created 'config' \t ./$(TARGET_BUILD)/params.xml$(NC)"
+	<?xml version="1.0" encoding="utf-8"?>
+	<TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+		<m_sKey>x2tconverter_pdf</m_sKey>
+		<m_sFileFrom>./source/input.docx</m_sFileFrom>
+		<m_sFileTo>./result/output.pdf</m_sFileTo>
+		<m_nFormatTo>513</m_nFormatTo>
+		<m_bIsPDFA xsi:nil="true" />
+		<m_nCsvTxtEncoding>46</m_nCsvTxtEncoding>
+		<m_nCsvDelimiter>4</m_nCsvDelimiter>
+		<m_nCsvDelimiterChar xsi:nil="true" />
+		<m_bPaid xsi:nil="true" />
+		<m_bEmbeddedFonts>false</m_bEmbeddedFonts>
+		<m_bFromChanges xsi:nil="true" />
+		<m_sFontDir>./fonts</m_sFontDir>
+		<m_sThemeDir>./sdkjs/slide/themes</m_sThemeDir>
+		<m_nDoctParams xsi:nil="true" />
+		<m_oTimestamp>2019-08-16T10:47:18.611Z</m_oTimestamp>
+		<m_bIsNoBase64>true</m_bIsNoBase64>
+		<m_oInputLimits>
+			<m_oInputLimit type="docx;dotx;docm;dotm">
+				<m_oZip uncompressed="52428800" template="*.xml"/>
+			</m_oInputLimit>
+			<m_oInputLimit type="xlsx;xltx;xlsm;xltm">
+				<m_oZip uncompressed="314572800" template="*.xml"/>
+			</m_oInputLimit>
+			<m_oInputLimit type="pptx;ppsx;potx;pptm;ppsm;potm">
+				<m_oZip uncompressed="52428800" template="*.xml"/>
+			</m_oInputLimit>
+		</m_oInputLimits>
+	</TaskQueueDataConvert>
+	EOF
+	
 	# Creates input and output dirs for converter's files
 	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/result ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/result
 	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/source ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/source
