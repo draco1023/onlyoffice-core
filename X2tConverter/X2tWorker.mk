@@ -4,7 +4,8 @@
 # How-to:
 #   1. build Core project from sources for corresponding OS
 #   2. cd ./X2tConverter && make -f X2tWorker.mk
-#   3. deploy worker
+#   3. run required build command (see Makefile help)
+#   4. deploy worker
 # =================================================================
 
 .SILENT: ;               # no need for @
@@ -46,8 +47,7 @@ ARGS      := $(filter-out $@, $(MAKECMDGOALS))
 # Target filters:
 # =================================================================
 BUILD_ARGS := $(filter-out build, $(MAKECMDGOALS))
-CLEAN_ARGS := $(filter-out clean, $(MAKECMDGOALS))
-PLATFORM  = $(if $(BUILD_ARGS),$(BUILD_ARGS), "")
+PLATFORM   := $(if $(BUILD_ARGS),$(BUILD_ARGS), "")
 
 # =================================================================
 # Project definitions:
@@ -64,6 +64,9 @@ else
 endif
 
 TARGET_BUILD := $(PLATFORM)_$(ARCH)
+
+ALLOWED_OS += mac
+ALLOWED_OS += linux
 
 ifeq ($(PLATFORM),mac)
 	SHARED_EXT := .dylib
@@ -84,13 +87,24 @@ endif
 
 ---: ## --------------------------------------------------------------
 build: ## Assemble x2t converter from Core build artifacts
-	echo "$(Cyan)Assemble x2t converter for $(PLATFORM)$(NC)"
+	echo "$(Cyan)Assembling x2t converter for $(PLATFORM)$(NC)"
 
 	[ -d $(BUILD_DIR)/$(TARGET_BUILD) ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)
-	cp $(CORE_BUILD_DIR)/lib/$(TARGET_BUILD)/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD)
+	
+	# Copy all compiled libraries to assemble directory
+	cp $(CORE_BUILD_DIR)/lib/$(TARGET_BUILD)/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "\t$(GREEN)Copy 'lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+	
+	# Copy all compiled binaries to assemble directory
+	cp $(CORE_BUILD_DIR)/bin/$(TARGET_BUILD)/* $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "\t$(GREEN)Copy 'bin' \t ./$(TARGET_BUILD)/*$(NC)"
 
 clean: ## Cleanup x2t converter assemblies
-	[ -d $(BUILD_DIR)/$(TARGET_BUILD)) ] && (rm -rf $(BUILD_DIR)/$(TARGET_BUILD)) && echo "Deleted $(BUILD_DIR)/$(TARGET_BUILD))")
+	for target_os in $(ALLOWED_OS); do \
+		[ -d $(BUILD_DIR)/"$$target_os"_$(ARCH) ] \
+			&& rm -rf $(BUILD_DIR)/"$$target_os"_$(ARCH) \
+			&& echo "Deleted $(BUILD_DIR)/"$$target_os"_$(ARCH)"
+	done
 	exit 0
 
 ---: ## --------------------------------------------------------------
