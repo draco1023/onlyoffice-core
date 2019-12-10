@@ -94,19 +94,23 @@ build: ## Assemble x2t converter from Core build artifacts
 	
 	# Copy all compiled libraries to assemble directory
 	cp $(CORE_BUILD_DIR)/lib/$(TARGET_BUILD)/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "\t$(GREEN)Copy 'lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+		&& echo "$(GREEN)Copy 'lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
 	
 	# Copy all compiled binaries to assemble directory
 	cp $(CORE_BUILD_DIR)/bin/$(TARGET_BUILD)/* $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "\t$(GREEN)Copy 'bin' \t ./$(TARGET_BUILD)/*$(NC)"
+		&& echo "$(GREEN)Copy 'bin' \t ./$(TARGET_BUILD)/*$(NC)"
 
 	# Copy initials empty docs binaries
 	cp -r $(CORE_COMMON_DIR)/empty $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "\t$(GREEN)Copy 'doct' \t ./$(TARGET_BUILD)/empty/*.bin$(NC)"
+		&& echo "$(GREEN)Copy 'doct' \t ./$(TARGET_BUILD)/empty/*.bin$(NC)"
 
 	# Copy ICU library built for corresponding OS
 	cp $(CORE_COMMON_DIR)/3dParty/icu/$(TARGET_BUILD)/build/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "\t$(GREEN)Copy 'icu lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+		&& echo "$(GREEN)Copy 'icu lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+	
+	# Copy Chromium Embedded Framework
+	cp -r $(CORE_COMMON_DIR)/3dParty/cef/$(TARGET_BUILD)/build/. $(BUILD_DIR)/$(TARGET_BUILD)/HtmlFileInternal \
+		&& echo "$(GREEN)Copy 'cef lib' \t ./$(TARGET_BUILD)/HtmlFileInternal$(NC)"
 	
 	# Creates input and output dirs for converter's files
 	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/result ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/result
