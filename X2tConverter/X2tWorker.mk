@@ -56,6 +56,7 @@ PLATFORM   := $(if $(BUILD_ARGS),$(BUILD_ARGS), "")
 BUILD_DIR := $(CWD)/build
 
 CORE_BUILD_DIR := $(abspath $(CWD)/../build)
+CORE_COMMON_DIR := $(abspath $(CWD)/../Common)
 
 ifeq ($(shell uname -m),x86_64)
 	ARCH := 64
@@ -99,13 +100,25 @@ build: ## Assemble x2t converter from Core build artifacts
 	cp $(CORE_BUILD_DIR)/bin/$(TARGET_BUILD)/* $(BUILD_DIR)/$(TARGET_BUILD) \
 		&& echo "\t$(GREEN)Copy 'bin' \t ./$(TARGET_BUILD)/*$(NC)"
 
+	# Copy initials empty docs binaries
+	cp -r $(CORE_COMMON_DIR)/empty $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "\t$(GREEN)Copy 'doct' \t ./$(TARGET_BUILD)/empty/*.bin$(NC)"
+
+	# Copy ICU library built for corresponding OS
+	cp $(CORE_COMMON_DIR)/3dParty/icu/$(TARGET_BUILD)/build/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "\t$(GREEN)Copy 'icu lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+	
+	# Creates input and output dirs for converter's files
+	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/result ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/result
+	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/source ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/source
+
 clean: ## Cleanup x2t converter assemblies
 	for target_os in $(ALLOWED_OS); do \
 		[ -d $(BUILD_DIR)/"$$target_os"_$(ARCH) ] \
 			&& rm -rf $(BUILD_DIR)/"$$target_os"_$(ARCH) \
-			&& echo "Deleted $(BUILD_DIR)/"$$target_os"_$(ARCH)"
+			&& echo "Deleted $(BUILD_DIR)/"$$target_os"_$(ARCH)" \
+			|| echo "Build for $$target_os is not exists"
 	done
-	exit 0
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
