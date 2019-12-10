@@ -1,45 +1,59 @@
 {
     "version": 4,
+    "env": {
+        "coreMacDefaultIncludePath": [
+            "${workspaceFolder}/Common/3dParty/icu/mac_64/usr/local/include/**"
+        ],
+        "coreLinuxDefaultIncludePath": [
+            "${workspaceFolder}/Common/3dParty/icu/linux_64/usr/local/include/**"
+        ],
+        "coreDefaultIncludePath": [
+            "${workspaceFolder}/ASCOffice*/**",
+            "${workspaceFolder}/Common/3dParty/boost/boost_*/boost/**",
+            "${workspaceFolder}/Common/3dParty/cryptopp/**",
+            "${workspaceFolder}/Common/3dParty/openssl/openssl/include/**",
+            "${workspaceFolder}/Common/3dParty/pole/**",
+            "${workspaceFolder}/Common/3dParty/v8/v8/include/**",
+            "${workspaceFolder}/Common/DocxFormat/**",
+            "${workspaceFolder}/Common/FileDownloader/**",
+            "${workspaceFolder}/Common/*",
+            "${workspaceFolder}/DesktopEditor/**",
+            "${workspaceFolder}/DjVuFile/**",
+            "${workspaceFolder}/DocxRenderer/**",
+            "${workspaceFolder}/HtmlFile/**",
+            "${workspaceFolder}/HtmlFile/**",
+            "${workspaceFolder}/HtmlRenderer/**",
+            "${workspaceFolder}/OfficeCryptReader/source/**",
+            "${workspaceFolder}/OfficeUtils/src/**",
+            "${workspaceFolder}/PdfReader/**",
+            "${workspaceFolder}/PdfWriter/**",
+            "${workspaceFolder}/UnicodeConverter/**",
+            "${workspaceFolder}/X2tConverter/src/**",
+            "${workspaceFolder}/XlsxSerializerCom/**",
+            "${workspaceFolder}/XpsFile/**"
+        ]
+    },
     "configurations": [
-        {
-            "name": "Debug C++ Mac Config",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/DesktopEditor/common/*",
-                "${workspaceFolder}/Common/*",
-                "${workspaceFolder}/Common/3dParty/openssl/openssl/include/*",
-                "${workspaceFolder}/Common/3dParty/boost/boost_1_58_0/boost/*",
-                "/usr/local/Cellar/qt/5.13.0/include/**",
-                "/usr/local/include"
-            ],
-            "defines": [],
-            "macFrameworkPath": [
-                "${default}",
-                "/System/Library/Frameworks",
-                "/Library/Frameworks",
-                "/usr/local/Cellar/qt/5.13.0/Frameworks"
-            ],
-            "compilerPath": "/usr/bin/g++",
-            "cStandard": "c11",
-            "cppStandard": "c++11",
-            "intelliSenseMode": "clang-x64"
-        },
         {
             "name": "C++ Mac",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${coreMacDefaultIncludePath}",
+                "${coreDefaultIncludePath}",
+                "${default}"
             ],
             "browse": {
                 "path": [
-                    "${workspaceFolder}/**"
+                    "${coreMacDefaultIncludePath}",
+                    "${coreDefaultIncludePath}",
+                    "${default}"
                 ],
                 "limitSymbolsToIncludedHeaders": false,
                 "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db"
             },
-            "intelliSenseMode": "clang-x64",
             "compilerPath": "/usr/bin/clang",
             "cppStandard": "c++11",
-            "cStandard": "c11"
+            "cStandard": "c11",
+            "intelliSenseMode": "clang-x64"
         }
     ]
 }
