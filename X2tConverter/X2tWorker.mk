@@ -108,6 +108,10 @@ build: ## Assemble x2t converter from Core build artifacts
 	cp $(CORE_COMMON_DIR)/3dParty/icu/$(TARGET_BUILD)/build/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
 		&& echo "$(GREEN)Copy 'icu lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
 	
+	# Copy ICU default data file for corresponding OS
+	cp $(CORE_COMMON_DIR)/3dParty/v8/v8/out.gn/$(TARGET_BUILD)/icudtl.dat $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "$(GREEN)Copy 'icu dtl' \t ./$(TARGET_BUILD)/icudtl.dat$(NC)"
+	
 	# Copy Chromium Embedded Framework
 	cp -r $(CORE_COMMON_DIR)/3dParty/cef/$(TARGET_BUILD)/build/. $(BUILD_DIR)/$(TARGET_BUILD)/HtmlFileInternal \
 		&& echo "$(GREEN)Copy 'cef lib' \t ./$(TARGET_BUILD)/HtmlFileInternal$(NC)"
