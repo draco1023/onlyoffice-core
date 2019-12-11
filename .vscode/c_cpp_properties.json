@@ -1,0 +1,59 @@
+{
+    "version": 4,
+    "env": {
+        "coreMacDefaultIncludePath": [
+            "${workspaceFolder}/Common/3dParty/icu/mac_64/usr/local/include/**"
+        ],
+        "coreLinuxDefaultIncludePath": [
+            "${workspaceFolder}/Common/3dParty/icu/linux_64/usr/local/include/**"
+        ],
+        "coreDefaultIncludePath": [
+            "${workspaceFolder}/ASCOffice*/**",
+            "${workspaceFolder}/Common/3dParty/boost/boost_*/boost/**",
+            "${workspaceFolder}/Common/3dParty/cryptopp/**",
+            "${workspaceFolder}/Common/3dParty/openssl/openssl/include/**",
+            "${workspaceFolder}/Common/3dParty/pole/**",
+            "${workspaceFolder}/Common/3dParty/v8/v8/include/**",
+            "${workspaceFolder}/Common/DocxFormat/**",
+            "${workspaceFolder}/Common/FileDownloader/**",
+            "${workspaceFolder}/Common/*",
+            "${workspaceFolder}/DesktopEditor/**",
+            "${workspaceFolder}/DjVuFile/**",
+            "${workspaceFolder}/DocxRenderer/**",
+            "${workspaceFolder}/HtmlFile/**",
+            "${workspaceFolder}/HtmlFile/**",
+            "${workspaceFolder}/HtmlRenderer/**",
+            "${workspaceFolder}/OfficeCryptReader/source/**",
+            "${workspaceFolder}/OfficeUtils/src/**",
+            "${workspaceFolder}/PdfReader/**",
+            "${workspaceFolder}/PdfWriter/**",
+            "${workspaceFolder}/UnicodeConverter/**",
+            "${workspaceFolder}/X2tConverter/src/**",
+            "${workspaceFolder}/XlsxSerializerCom/**",
+            "${workspaceFolder}/XpsFile/**"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "C++ Mac",
+            "includePath": [
+                "${coreMacDefaultIncludePath}",
+                "${coreDefaultIncludePath}",
+                "${default}"
+            ],
+            "browse": {
+                "path": [
+                    "${coreMacDefaultIncludePath}",
+                    "${coreDefaultIncludePath}",
+                    "${default}"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db"
+            },
+            "compilerPath": "/usr/bin/clang",
+            "cppStandard": "c++11",
+            "cStandard": "c11",
+            "intelliSenseMode": "clang-x64"
+        }
+    ]
+}

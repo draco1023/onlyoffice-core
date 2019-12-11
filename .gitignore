@@ -66,3 +66,7 @@ X2tConverter/Common/DocxFormat/DocxFormatLib/Makefile
 *.dat
 *.txt
 *.log
+
+
+### VSCODE project specific configuration
+!.vscode/c_cpp_properties.json
