@@ -56,6 +56,9 @@ PLATFORM   := $(if $(BUILD_ARGS),$(BUILD_ARGS), "")
 BUILD_DIR := $(CWD)/build
 FONTS_SRC_PREFIX := core-fonts
 
+# SDKJS SRC repository url
+SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
+
 CORE_BUILD_DIR := $(abspath $(CWD)/../build)
 CORE_COMMON_DIR := $(abspath $(CWD)/../Common)
 
@@ -136,15 +139,42 @@ build: ## Assemble x2t converter from Core build artifacts
 			rm -rf $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype/.git \
 			&& echo "$(Green)Copy $$FONTS_SRC_PREFIX$(NC) \t\t ./$(TARGET_BUILD)/fonts/truetype/*")
 	
+	# Clone SDKJS repository
+	[ -d $(CORE_BUILD_DIR)/.cache/sdkjs_src ] \
+		&& echo "$(Green)Download sdkjs$(NC) \t\t $(CORE_BUILD_DIR)/.cache/sdkjs_src" \
+		|| git clone --depth 1 $(SDKJS_SRC_URL) $(CORE_BUILD_DIR)/.cache/sdkjs_src
+		
 	# Build SDKJS from sources
+	cd $(CORE_BUILD_DIR)/.cache/sdkjs_src
+	
+	if [[ "$(sdkjs-branch)" ]]; then
+		git checkout $(sdkjs-branch)
+	fi
+
+	if [[ -f build/package.json ]]; then
+		npm install
+		grunt --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+	fi
+
+	[ -d $(CORE_BUILD_DIR)/.cache/sdkjs_src/deploy/sdkjs ] \
+		&& cp -nR $(CORE_BUILD_DIR)/.cache/sdkjs_src/deploy/sdkjs $(BUILD_DIR)/$(TARGET_BUILD) \
+		&& echo "$(Green)Copy 'SDKJS'$(NC) \t\t ./$(TARGET_BUILD)/sdkjs/*"
+
+	# Todo: Build these with Grunt
+	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/{xregexp,jquery}
+	cp -nR $(CORE_BUILD_DIR)/.cache/sdkjs_src/common/externs/xregexp-*.js $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/xregexp/xregexp-all-min.js
+	cp -nR $(CORE_BUILD_DIR)/.cache/sdkjs_src/common/externs/jquery-*.js $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/jquery/jquery.min.js
+	
+	cd $(CWD)
+
 	
 	# Create DoctRenderer.config
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
 		&& echo "$(Green)Created 'config'$(NC) \t ./$(TARGET_BUILD)/DoctRenderer.config"
 	<Settings>
 		<file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
-		<file>./sdkjs/vendor/AllFonts.js</file>
 		<htmlfile>./sdkjs/vendor/jquery/jquery.min.js</htmlfile>
+		<file>./AllFonts.js</file>
 
 		<file>./sdkjs/common/Native/native.js</file>
 		<file>./sdkjs/common/Native/jquery_native.js</file>
