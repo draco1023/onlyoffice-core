@@ -54,6 +54,7 @@ PLATFORM   := $(if $(BUILD_ARGS),$(BUILD_ARGS), "")
 # =================================================================
 # X2t converter build dir for assemble output
 BUILD_DIR := $(CWD)/build
+FONTS_SRC_PREFIX := core-fonts
 
 CORE_BUILD_DIR := $(abspath $(CWD)/../build)
 CORE_COMMON_DIR := $(abspath $(CWD)/../Common)
@@ -116,29 +117,37 @@ build: ## Assemble x2t converter from Core build artifacts
 	cp -r $(CORE_COMMON_DIR)/3dParty/cef/$(TARGET_BUILD)/build/. $(BUILD_DIR)/$(TARGET_BUILD)/HtmlFileInternal \
 		&& echo "$(Green)Copy 'cef lib'$(NC) \t\t ./$(TARGET_BUILD)/HtmlFileInternal"
 
-	# Build SDKJS from sources
-
 	# Download Fonts
-	[ -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts ] \
-		&& echo "$(Green)Download fonts$(NC) \t\t $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts" \
-		|| git clone --depth 1 $(fonts-repo) $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts
+	if [[ $(fonts-repo) == *"pdffiller/pdf-fonts"* ]]; then
+	FONTS_SRC_PREFIX=pdf-fonts
+	fi
 
-	[[ -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/trueedit && -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/workers ]] \
-		&& mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype/{trueedit,workers} \
-		&& cp -R $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/{trueedit,workers} $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype \
-		&& echo "$(Green)Copy pdf-fonts$(NC) \t\t ./$(TARGET_BUILD)/fonts/truetype/{workers, trueedit}"
+	[ -d $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX ] \
+		&& echo "$(Green)Download fonts$(NC) \t\t $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX" \
+		|| git clone --depth 1 $(fonts-repo) $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX
+
+	# Copy Pdf-fonts JSEditor & Workers compatible OR copy onlyoffice core fonts (depends on provided fonts-url)
+	[[ -d $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX/trueedit && -d $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX/workers ]] \
+		&& (mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype/{trueedit,workers} \
+			&& cp -R $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX/{trueedit,workers} $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype \
+			&& echo "$(Green)Copy $$FONTS_SRC_PREFIX$(NC) \t\t ./$(TARGET_BUILD)/fonts/truetype/{workers, trueedit}") \
+		|| (mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype \
+			&& cp -nR $(CORE_BUILD_DIR)/.cache/fonts/$$FONTS_SRC_PREFIX/. $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype; \
+			rm -rf $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype/.git \
+			&& echo "$(Green)Copy $$FONTS_SRC_PREFIX$(NC) \t\t ./$(TARGET_BUILD)/fonts/truetype/*")
+	
+	# Build SDKJS from sources
 	
 	# Create DoctRenderer.config
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
 		&& echo "$(Green)Created 'config'$(NC) \t ./$(TARGET_BUILD)/DoctRenderer.config"
 	<Settings>
-		<file>./sdkjs/common/Native/native.js</file>
-		<file>./sdkjs/common/Native/jquery_native.js</file>
-
 		<file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
-
 		<file>./sdkjs/vendor/AllFonts.js</file>
 		<htmlfile>./sdkjs/vendor/jquery/jquery.min.js</htmlfile>
+
+		<file>./sdkjs/common/Native/native.js</file>
+		<file>./sdkjs/common/Native/jquery_native.js</file>
 		<DoctSdk>
 			<file>./sdkjs/word/sdk-all-min.js</file>
 			<file>./sdkjs/common/libfont/js/fonts.js</file>
