@@ -164,9 +164,20 @@ build: ## Assemble x2t converter from Core build artifacts
 	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/{xregexp,jquery}
 	cp -nR $(CORE_BUILD_DIR)/.cache/sdkjs_src/common/externs/xregexp-*.js $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/xregexp/xregexp-all-min.js
 	cp -nR $(CORE_BUILD_DIR)/.cache/sdkjs_src/common/externs/jquery-*.js $(BUILD_DIR)/$(TARGET_BUILD)/sdkjs/vendor/jquery/jquery.min.js
-	
-	cd $(CWD)
 
+	# Create empty folder for fonts-web
+	[ -d $(BUILD_DIR)/$(TARGET_BUILD)/fonts-web ] || mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/fonts-web
+
+	cd $(BUILD_DIR)/$(TARGET_BUILD)
+	# Generate AllFonts.js, font thumbnails and font_selection.bin
+	./allfontsgen \
+	--input="$(BUILD_DIR)/$(TARGET_BUILD)/fonts/core-fonts" \
+	--allfonts-web="./sdkjs/common/AllFonts.js" \
+	--allfonts="./AllFonts.js" \
+	--images="./sdkjs/common/Images" \
+	--selection="./font_selection.bin" \
+	--output-web="./fonts-web" \
+	--use-system="false"
 	
 	# Create DoctRenderer.config
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
