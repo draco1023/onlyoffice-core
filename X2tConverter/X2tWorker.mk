@@ -122,6 +122,11 @@ build: ## Assemble x2t converter from Core build artifacts
 	[ -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts ] \
 		&& echo "$(Green)Download fonts$(NC) \t\t $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts" \
 		|| git clone --depth 1 $(fonts-repo) $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts
+
+	[[ -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/trueedit && -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/workers ]] \
+		&& mkdir -p $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype/{trueedit,workers} \
+		&& cp -R $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts/{trueedit,workers} $(BUILD_DIR)/$(TARGET_BUILD)/fonts/truetype \
+		&& echo "$(Green)Copy pdf-fonts$(NC) \t\t ./$(TARGET_BUILD)/fonts/truetype/{workers, trueedit}"
 	
 	# Create DoctRenderer.config
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
