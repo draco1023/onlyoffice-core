@@ -94,31 +94,38 @@ build: ## Assemble x2t converter from Core build artifacts
 	
 	# Copy all compiled libraries to assemble directory
 	cp $(CORE_BUILD_DIR)/lib/$(TARGET_BUILD)/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "$(GREEN)Copy 'lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+		&& echo "$(Green)Copy 'lib'$(NC) \t\t ./$(TARGET_BUILD)/*$(SHARED_EXT)"
 	
 	# Copy all compiled binaries to assemble directory
 	cp $(CORE_BUILD_DIR)/bin/$(TARGET_BUILD)/* $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "$(GREEN)Copy 'bin' \t ./$(TARGET_BUILD)/*$(NC)"
+		&& echo "$(Green)Copy 'bin'$(NC) \t\t ./$(TARGET_BUILD)/*"
 
 	# Copy initials empty docs binaries
 	cp -r $(CORE_COMMON_DIR)/empty $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "$(GREEN)Copy 'doct' \t ./$(TARGET_BUILD)/empty/*.bin$(NC)"
+		&& echo "$(Green)Copy 'doct'$(NC) \t\t ./$(TARGET_BUILD)/empty/*.bin"
 
 	# Copy ICU library built for corresponding OS
 	cp $(CORE_COMMON_DIR)/3dParty/icu/$(TARGET_BUILD)/build/*$(SHARED_EXT) $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "$(GREEN)Copy 'icu lib' \t ./$(TARGET_BUILD)/*$(SHARED_EXT)$(NC)"
+		&& echo "$(Green)Copy 'icu lib'$(NC) \t\t ./$(TARGET_BUILD)/*$(SHARED_EXT)"
 	
 	# Copy ICU default data file for corresponding OS
 	cp $(CORE_COMMON_DIR)/3dParty/v8/v8/out.gn/$(TARGET_BUILD)/icudtl.dat $(BUILD_DIR)/$(TARGET_BUILD) \
-		&& echo "$(GREEN)Copy 'icu dtl' \t ./$(TARGET_BUILD)/icudtl.dat$(NC)"
+		&& echo "$(Green)Copy 'icu dtl'$(NC) \t\t ./$(TARGET_BUILD)/icudtl.dat"
 	
 	# Copy Chromium Embedded Framework
 	cp -r $(CORE_COMMON_DIR)/3dParty/cef/$(TARGET_BUILD)/build/. $(BUILD_DIR)/$(TARGET_BUILD)/HtmlFileInternal \
-		&& echo "$(GREEN)Copy 'cef lib' \t ./$(TARGET_BUILD)/HtmlFileInternal$(NC)"
+		&& echo "$(Green)Copy 'cef lib'$(NC) \t\t ./$(TARGET_BUILD)/HtmlFileInternal"
+
+	# Build SDKJS from sources
+
+	# Download Fonts
+	[ -d $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts ] \
+		&& echo "$(Green)Download fonts$(NC) \t\t $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts" \
+		|| git clone --depth 1 $(fonts-repo) $(CORE_BUILD_DIR)/.cache/fonts/pdf-fonts
 	
 	# Create DoctRenderer.config
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/DoctRenderer.config \
-		&& echo "$(GREEN)Created 'config' \t ./$(TARGET_BUILD)/DoctRenderer.config$(NC)"
+		&& echo "$(Green)Created 'config'$(NC) \t ./$(TARGET_BUILD)/DoctRenderer.config"
 	<Settings>
 		<file>./sdkjs/common/Native/native.js</file>
 		<file>./sdkjs/common/Native/jquery_native.js</file>
@@ -147,7 +154,7 @@ build: ## Assemble x2t converter from Core build artifacts
 
 	# Create params.xml
 	cat << EOF > $(BUILD_DIR)/$(TARGET_BUILD)/params.xml \
-		&& echo "$(GREEN)Created 'config' \t ./$(TARGET_BUILD)/params.xml$(NC)"
+		&& echo "$(Green)Created 'params'$(NC) \t ./$(TARGET_BUILD)/params.xml"
 	<?xml version="1.0" encoding="utf-8"?>
 	<TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -190,16 +197,24 @@ clean: ## Cleanup x2t converter assemblies
 		[ -d $(BUILD_DIR)/"$$target_os"_$(ARCH) ] \
 			&& rm -rf $(BUILD_DIR)/"$$target_os"_$(ARCH) \
 			&& echo "Deleted $(BUILD_DIR)/"$$target_os"_$(ARCH)" \
-			|| echo "Build for $$target_os is not exists"
+			|| echo "Build for $$target_os is not exists. Skip clean."
 	done
+
+	[ -d $(CORE_BUILD_DIR)/.cache ] \
+		&& rm -rf $(CORE_BUILD_DIR)/.cache \
+		|| echo "$(CORE_BUILD_DIR)/.cache is not exists. Skip clean."
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
-	@echo "$(Yellow)Usage:$(NC)\n  make -f $(THIS_MAKEFILE) <target> <target_os>"
+	@echo "$(Yellow)Usage:$(NC)\n  make -f $(THIS_MAKEFILE) <target> <target_os> <fonts-url>"
 	@echo ''
 	@echo "$(Yellow)Target OS:$(NC)"
 	printf "  $(Green)%-15s$(NC) %s\n" "mac" "Assemble x2t converter for MacOs"
 	printf "  $(Green)%-15s$(NC) %s\n" "linux" "Assemble x2t converter for Linux"
+	@echo ''
+	@echo "$(Yellow)Fonts URL:$(NC)"
+	printf "  $(Green)%-15s$(NC) %s\n" "fonts-url" "ssh url to proper github fonts repository. See example bellow:"
+	printf "  $(Green)%-15s$(NC) $(Cyan)%s$(NC)\n" "" "git@github.com:pdffiller/pdf-fonts.git"
 	@echo ''
 	@echo "$(Yellow)Targets:$(NC)"
 	@echo ''
