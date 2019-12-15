@@ -156,7 +156,6 @@ allfonts: core_fonts ## Generate Allfonts.js for converter
 ---: ## --------------------------------------------------------------
 build: sdkjs ## Assemble x2t converter from Core build artifacts
 	echo "$@: Assembling x2t converter for $(PLATFORM) -> $(DEST_DIR)"
-	cleancoredump
 
 	# Creates os-specific build dir
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
