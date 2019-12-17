@@ -151,7 +151,7 @@ sdkjs: ## Build SDKJS from sources
 		echo "$@: Building sdkjs from sources..."; \
 		cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build; \
 		cd $(SDKJS_DIR) \
-			&& grunt --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
+			&& grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
 	fi
 	echo "$@: Build successfull"
 
