@@ -179,21 +179,21 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
 	
 	# Creates all necessary dirs
-	for required_dir in $(X2T_REQ_DIRS); do
-		[ -d "$(DEST_DIR)/$${required_dir}" ] || mkdir -p $(DEST_DIR)/$${required_dir}
-		echo "$@: Create target dir $${required_dir} -> $(DEST_DIR)/$${required_dir}"
+	for required_dir in $(X2T_REQ_DIRS); do \
+		[ -d "$(DEST_DIR)/$${required_dir}" ] || mkdir -p $(DEST_DIR)/$${required_dir}; \
+		echo "$@: Create target dir $${required_dir} -> $(DEST_DIR)/$${required_dir}"; \
 	done
 
 	# Copy all build artifacts to assemble dir
-	for current_file in $(BUILT_ARTIFACT); do
-		cp $(CORE_DIR)/$${current_file} $(CWD)/$(DEST_DIR)
-		echo "$@: Copy $${current_file} -> $(DEST_DIR)"
+	for current_file in $(BUILT_ARTIFACT); do \
+		cp $(CORE_DIR)/$${current_file} $(CWD)/$(DEST_DIR); \
+		echo "$@: Copy $${current_file} -> $(DEST_DIR)"; \
 	done
 
 	# Copy SDKJS build artifact
-	for sdkjs_dir in cell common slide word; do
-		cp -R $(SDKJS_DIR)/deploy/sdkjs/$${sdkjs_dir} $(DEST_DIR)/sdkjs/$${sdkjs_dir}
-		echo "$@: Copy ./deploy/sdkjs/$${sdkjs_dir} -> $(DEST_DIR)/sdkjs/$${sdkjs_dir}"
+	for sdkjs_dir in cell common slide word; do \
+		cp -R $(SDKJS_DIR)/deploy/sdkjs/$${sdkjs_dir} $(DEST_DIR)/sdkjs/$${sdkjs_dir}; \
+		echo "$@: Copy ./deploy/sdkjs/$${sdkjs_dir} -> $(DEST_DIR)/sdkjs/$${sdkjs_dir}"; \
 	done
 
 	echo "$@: Download JQuery and XRegexp"
