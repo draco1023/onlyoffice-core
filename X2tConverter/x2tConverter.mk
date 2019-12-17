@@ -16,7 +16,7 @@
 .EXPORT_ALL_VARIABLES: ; # send all vars to shell
 Makefile: ;              # skip prerequisite discovery
 
-SHELL ?= /bin/bash
+SHELL = /bin/bash
 CURL := curl -L -o
 
 # Determine this Makefile as Main file
