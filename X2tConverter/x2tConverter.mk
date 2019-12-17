@@ -137,16 +137,16 @@ sdkjs: ## Build SDKJS from sources
 	# Checkout to defined from input branch name
 	# 'sdkjs-branch=branch-name'
 	cd $(SDKJS_DIR)
-	if [ "$(sdkjs-branch)" ]; then
-		git checkout $(sdkjs-branch)
+	if [ "$(sdkjs-branch)" ]; then \
+		git checkout $(sdkjs-branch); \
 	fi
 
 	# Build sdkjs
-	if [ ! -d $(SDKJS_DIR)/deploy ]; then
-		echo "$@: Building sdkjs from sources..."
-		cd ./build && npm install
+	if [ ! -d $(SDKJS_DIR)/deploy ]; then \
+		echo "$@: Building sdkjs from sources..."; \
+		cd ./build && npm install; \
 		cd $(SDKJS_DIR) \
-			&& grunt --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+			&& grunt --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
 	fi
 	echo "$@: Build successfull"
 
