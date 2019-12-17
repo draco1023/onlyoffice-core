@@ -11,7 +11,7 @@
 # =================================================================
 
 .SILENT: ;               # no need for @
-.ONESHELL: ;             # recipes execute in same shell
+# .ONESHELL: ;             # recipes execute in same shell
 .NOTPARALLEL: ;          # wait for this target to finish
 .EXPORT_ALL_VARIABLES: ; # send all vars to shell
 Makefile: ;              # skip prerequisite discovery
@@ -136,9 +136,8 @@ sdkjs: ## Build SDKJS from sources
 
 	# Checkout to defined from input branch name
 	# 'sdkjs-branch=branch-name'
-	cd $(SDKJS_DIR)
 	if [ "$(sdkjs-branch)" ]; then \
-		git checkout $(sdkjs-branch); \
+		cd $(SDKJS_DIR) && git checkout $(sdkjs-branch); \
 	fi
 
 	# Build sdkjs
