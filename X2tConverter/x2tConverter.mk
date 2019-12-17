@@ -4,7 +4,8 @@
 #
 # How-to:
 #   1. build Core project from sources for corresponding OS
-#   2. cd ./X2tConverter && make -f x2tConverter.mk
+#   2. cd ./X2tConverter \
+#         && make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
 #   3. run required build command (see Makefile help)
 #   4. deploy worker
 # =================================================================
@@ -77,10 +78,10 @@ BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)UnicodeConverter$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicudata*$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicuuc*$(SHARED_EXT)
 
-# ifeq ($(PLATFORM),mac)
-# BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)HtmlFileInternal$(SHARED_EXT)
-# BUILT_ARTIFACT += $(CORE_3DPARTY)/cef/$(TARGET)/build/**
-# endif
+ifeq ($(PLATFORM),mac)
+BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)HtmlFileInternal$(SHARED_EXT)
+BUILT_ARTIFACT += $(CORE_3DPARTY)/cef/$(TARGET)/build/**
+endif
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
@@ -93,6 +94,14 @@ SDKJS_XREGEXP = xregexp/xregexp-all-min.js
 # Core fonts SRC repository url
 CORE_FONTS_SRC_URL := git@github.com:ONLYOFFICE/core-fonts.git
 CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../core-fonts)
+
+# X2T Converter requred dirs
+X2T_REQ_DIRS += result
+X2T_REQ_DIRS += source
+X2T_REQ_DIRS += fonts
+X2T_REQ_DIRS += allfonts
+X2T_REQ_DIRS += sdkjs/vendor/jquery
+X2T_REQ_DIRS += sdkjs/vendor/xregexp
 
 .PHONY: help build sdkjs allfonts clean
 
@@ -142,10 +151,14 @@ sdkjs: ## Build SDKJS from sources
 	echo "$@: Build successfull"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
+	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
+	find $(CORE_FONTS_DIR) -type f -name *.ttf -exec cp {} $(DEST_DIR)/allfonts ";"
+	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/allfonts"
+	
 	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
-		--input="$(CORE_FONTS_DIR)" \
+		--input="./allfonts;" \
 		--allfonts-web="./sdkjs/common/AllFonts.js" \
 		--allfonts="./AllFonts.js" \
 		--images="./sdkjs/common/Images" \
@@ -161,7 +174,7 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
 	
 	# Creates all necessary dirs
-	for required_dir in result source fonts sdkjs/vendor/jquery sdkjs/vendor/xregexp; do
+	for required_dir in $(X2T_REQ_DIRS); do
 		[ -d "$(DEST_DIR)/$${required_dir}" ] || mkdir -p $(DEST_DIR)/$${required_dir}
 		echo "$@: Create target dir $${required_dir} -> $(DEST_DIR)/$${required_dir}"
 	done
@@ -255,16 +268,18 @@ clean: ## Cleanup x2t converter assemblies
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
-	@echo "Usage:\n  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
-	@echo ''
-	@echo "SDKJS options:"
+	echo "Usage:\n  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
+	echo ''
+	echo "example:\n  make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields"
+	echo ''
+	echo "SDKJS options:"
 	printf "  %-15s %s\n" "sdkjs-branch" "proper branch name for build"
 	printf "  %-15s %s\n" "            " "e.g. 'master'"
-	@echo ''
-	@echo "Targets:"
-	@echo ''
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(THIS_MAKEFILE) | awk 'BEGIN {FS = ":.*?## "}; \
+	echo ''
+	echo "Targets:"
+	echo ''
+	grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(THIS_MAKEFILE) | awk 'BEGIN {FS = ":.*?## "}; \
 		{printf "  %-15s %s\n", $$1, $$2}'
-	@echo ''
+	echo ''
 %:
 	@:
