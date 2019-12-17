@@ -143,7 +143,7 @@ sdkjs: ## Build SDKJS from sources
 	# Build sdkjs
 	if [ ! -d $(SDKJS_DIR)/deploy ]; then \
 		echo "$@: Building sdkjs from sources..."; \
-		cd $(SDKJS_DIR)/build && npm install; \
+		cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build $(SDKJS_DIR)/build/package.json; \
 		cd $(SDKJS_DIR) \
 			&& grunt --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
 	fi
