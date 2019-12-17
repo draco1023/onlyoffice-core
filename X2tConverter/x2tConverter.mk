@@ -140,6 +140,12 @@ sdkjs: ## Build SDKJS from sources
 		cd $(SDKJS_DIR) && git checkout $(sdkjs-branch); \
 	fi
 
+	# Install grunt-cli
+	if [ "$(command -v grunt 2>/dev/null)" = "" ]; then \
+		echo "$@: Installing grunt-cli ..."; \
+		npm install -g grunt-cli; \
+	fi
+
 	# Build sdkjs
 	if [ ! -d $(SDKJS_DIR)/deploy ]; then \
 		echo "$@: Building sdkjs from sources..."; \
