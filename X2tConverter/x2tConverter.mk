@@ -4,19 +4,19 @@
 #
 # How-to:
 #   1. build Core project from sources for corresponding OS
-#   2. cd ./X2tConverter \
-#         && make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
-#   3. run required build command (see Makefile help)
-#   4. deploy worker
+#   2. cd ./X2tConverter
+#   3. make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+#   4. run required build command (see Makefile help)
+#   5. deploy worker
 # =================================================================
 
 .SILENT: ;               # no need for @
-# .ONESHELL: ;             # recipes execute in same shell
+.ONESHELL: ;             # recipes execute in same shell
 .NOTPARALLEL: ;          # wait for this target to finish
 .EXPORT_ALL_VARIABLES: ; # send all vars to shell
 Makefile: ;              # skip prerequisite discovery
 
-SHELL = /bin/bash
+SHELL := /bin/bash
 CURL := curl -L -o
 
 # Determine this Makefile as Main file
@@ -46,7 +46,6 @@ ifeq ($(shell uname -m),x86_64)
 else
 	ARCH := 32
 endif
-
 
 TARGET := $(PLATFORM)_$(ARCH)
 DEST_DIR := ./build/$(TARGET)
@@ -78,10 +77,11 @@ BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)UnicodeConverter$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicudata*$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicuuc*$(SHARED_EXT)
 
-ifeq ($(PLATFORM),mac)
-BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)HtmlFileInternal$(SHARED_EXT)
-BUILT_ARTIFACT += $(CORE_3DPARTY)/cef/$(TARGET)/build/**
-endif
+# Not used for X2t Converter with assemble for OleObject
+# ifeq ($(PLATFORM),mac)
+# BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)HtmlFileInternal$(SHARED_EXT)
+# BUILT_ARTIFACT += $(CORE_3DPARTY)/cef/$(TARGET)/build/**
+# endif
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
@@ -99,9 +99,67 @@ CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../core-fonts)
 X2T_REQ_DIRS += result
 X2T_REQ_DIRS += source
 X2T_REQ_DIRS += fonts
-X2T_REQ_DIRS += allfonts
 X2T_REQ_DIRS += sdkjs/vendor/jquery
 X2T_REQ_DIRS += sdkjs/vendor/xregexp
+
+define DOCT_RENDERER_CONFIG
+<Settings>
+  <file>./sdkjs/common/Native/native.js</file>
+  <file>./sdkjs/common/Native/jquery_native.js</file>
+  <file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
+  <file>./AllFonts.js</file>
+  <htmlfile>./sdkjs/vendor/jquery/jquery.min.js</htmlfile>
+  <DoctSdk>
+    <file>./sdkjs/word/sdk-all-min.js</file>
+    <file>./sdkjs/common/libfont/js/fonts.js</file>
+    <file>./sdkjs/word/sdk-all.js</file>
+  </DoctSdk>
+  <PpttSdk>
+    <file>./sdkjs/slide/sdk-all-min.js</file>
+    <file>./sdkjs/common/libfont/js/fonts.js</file>
+    <file>./sdkjs/slide/sdk-all.js</file>
+  </PpttSdk>
+  <XlstSdk>
+    <file>./sdkjs/cell/sdk-all-min.js</file>
+    <file>./sdkjs/common/libfont/js/fonts.js</file>
+    <file>./sdkjs/cell/sdk-all.js</file>
+  </XlstSdk>
+</Settings>
+endef
+
+define PARAMS_XML
+<?xml version="1.0" encoding="utf-8"?>
+<TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<m_sKey>x2tconverter_pdf</m_sKey>
+	<m_sFileFrom>./source/input.docx</m_sFileFrom>
+	<m_sFileTo>./result/output.pdf</m_sFileTo>
+	<m_nFormatTo>513</m_nFormatTo>
+	<m_bIsPDFA xsi:nil="true" />
+	<m_nCsvTxtEncoding>46</m_nCsvTxtEncoding>
+	<m_nCsvDelimiter>4</m_nCsvDelimiter>
+	<m_nCsvDelimiterChar xsi:nil="true" />
+	<m_bPaid xsi:nil="true" />
+	<m_bEmbeddedFonts>false</m_bEmbeddedFonts>
+	<m_bFromChanges xsi:nil="true" />
+	<m_sFontDir>./fonts</m_sFontDir>
+	<m_sThemeDir>./sdkjs/slide/themes</m_sThemeDir>
+	<m_nDoctParams xsi:nil="true" />
+	<m_oTimestamp>2019-08-16T10:47:18.611Z</m_oTimestamp>
+	<m_bIsNoBase64>true</m_bIsNoBase64>
+	<m_oInputLimits>
+		<m_oInputLimit type="docx;dotx;docm;dotm">
+			<m_oZip uncompressed="52428800" template="*.xml"/>
+		</m_oInputLimit>
+		<m_oInputLimit type="xlsx;xltx;xlsm;xltm">
+			<m_oZip uncompressed="314572800" template="*.xml"/>
+		</m_oInputLimit>
+		<m_oInputLimit type="pptx;ppsx;potx;pptm;ppsm;potm">
+			<m_oZip uncompressed="52428800" template="*.xml"/>
+		</m_oInputLimit>
+	</m_oInputLimits>
+</TaskQueueDataConvert>
+endef
 
 .PHONY: help build sdkjs allfonts clean
 
@@ -141,7 +199,7 @@ sdkjs: ## Build SDKJS from sources
 	fi
 
 	# Install grunt-cli
-	if [ "$(command -v grunt 2>/dev/null)" = "" ]; then \
+	if [ "$(shell command -v grunt 2>/dev/null)" = "" ]; then \
 		echo "$@: Installing grunt-cli ..."; \
 		npm install -g grunt-cli; \
 	fi
@@ -157,18 +215,16 @@ sdkjs: ## Build SDKJS from sources
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
-	find $(CORE_FONTS_DIR) -type f -name *.ttf -exec cp {} $(DEST_DIR)/allfonts ";"
-	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/allfonts"
+	find $(CORE_FONTS_DIR) -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts ";"
+	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/fonts"
 	
 	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
-		--input="./allfonts;" \
-		--allfonts-web="./sdkjs/common/AllFonts.js" \
+		--input="./fonts;" \
 		--allfonts="./AllFonts.js" \
 		--images="./sdkjs/common/Images" \
 		--selection="./font_selection.bin" \
-		--output-web="./fonts" \
 		--use-system="false"
 
 ---: ## --------------------------------------------------------------
@@ -197,72 +253,17 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	done
 
 	echo "$@: Download JQuery and XRegexp"
-	$(CURL) $(DEST_DIR)/sdkjs/vendor/$(SDKJS_JQUERY) $(SDKJS_VENDOR)/$(SDKJS_JQUERY)
-	$(CURL) $(DEST_DIR)/sdkjs/vendor/$(SDKJS_XREGEXP) $(SDKJS_VENDOR)/$(SDKJS_XREGEXP)
+	for sdkjs_vnd in $(SDKJS_JQUERY) $(SDKJS_XREGEXP); do \
+		[ -f $(DEST_DIR)/sdkjs/vendor/$${sdkjs_vnd} ] || $(CURL) $(DEST_DIR)/sdkjs/vendor/$${sdkjs_vnd} $(SDKJS_VENDOR)/$${sdkjs_vnd}; \
+	done
 
 	# Create DoctRenderer.config
-	cat << EOF > $(DEST_DIR)/DoctRenderer.config \
-		&& echo "$@: Write config -> $(DEST_DIR)/DoctRenderer.config"
-	<Settings>
-		<file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
-		<htmlfile>./sdkjs/vendor/jquery/jquery.min.js</htmlfile>
-		<file>./AllFonts.js</file>
-
-		<file>./sdkjs/common/Native/native.js</file>
-		<file>./sdkjs/common/Native/jquery_native.js</file>
-		<DoctSdk>
-			<file>./sdkjs/word/sdk-all-min.js</file>
-			<file>./sdkjs/common/libfont/js/fonts.js</file>
-			<file>./sdkjs/word/sdk-all.js</file>
-		</DoctSdk>
-		<PpttSdk>
-			<file>./sdkjs/slide/sdk-all-min.js</file>
-			<file>./sdkjs/common/libfont/js/fonts.js</file>
-			<file>./sdkjs/slide/sdk-all.js</file>
-		</PpttSdk>
-		<XlstSdk>
-			<file>./sdkjs/cell/sdk-all-min.js</file>
-			<file>./sdkjs/common/libfont/js/fonts.js</file>
-			<file>./sdkjs/cell/sdk-all.js</file>
-		</XlstSdk>
-	</Settings>
-	EOF
+	echo "$@: Write config -> $(DEST_DIR)/DoctRenderer.config"
+	echo "$${DOCT_RENDERER_CONFIG}" > $(DEST_DIR)/DoctRenderer.config
 
 	# Create params.xml
-	cat << EOF > $(DEST_DIR)/params.xml \
-		&& echo "$@: Write run params -> $(DEST_DIR)/params.xml"
-	<?xml version="1.0" encoding="utf-8"?>
-	<TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-		<m_sKey>x2tconverter_pdf</m_sKey>
-		<m_sFileFrom>./source/input.docx</m_sFileFrom>
-		<m_sFileTo>./result/output.pdf</m_sFileTo>
-		<m_nFormatTo>513</m_nFormatTo>
-		<m_bIsPDFA xsi:nil="true" />
-		<m_nCsvTxtEncoding>46</m_nCsvTxtEncoding>
-		<m_nCsvDelimiter>4</m_nCsvDelimiter>
-		<m_nCsvDelimiterChar xsi:nil="true" />
-		<m_bPaid xsi:nil="true" />
-		<m_bEmbeddedFonts>false</m_bEmbeddedFonts>
-		<m_bFromChanges xsi:nil="true" />
-		<m_sFontDir>./fonts</m_sFontDir>
-		<m_sThemeDir>./sdkjs/slide/themes</m_sThemeDir>
-		<m_nDoctParams xsi:nil="true" />
-		<m_oTimestamp>2019-08-16T10:47:18.611Z</m_oTimestamp>
-		<m_bIsNoBase64>true</m_bIsNoBase64>
-		<m_oInputLimits>
-			<m_oInputLimit type="docx;dotx;docm;dotm">
-				<m_oZip uncompressed="52428800" template="*.xml"/>
-			</m_oInputLimit>
-			<m_oInputLimit type="xlsx;xltx;xlsm;xltm">
-				<m_oZip uncompressed="314572800" template="*.xml"/>
-			</m_oInputLimit>
-			<m_oInputLimit type="pptx;ppsx;potx;pptm;ppsm;potm">
-				<m_oZip uncompressed="52428800" template="*.xml"/>
-			</m_oInputLimit>
-		</m_oInputLimits>
-	</TaskQueueDataConvert>
-	EOF
+	echo "$@: Write run params -> $(DEST_DIR)/params.xml"
+	echo "$${PARAMS_XML}" > $(DEST_DIR)/params.xml
 
 	# Generate Allfonts.js
 	$(MAKE) -f $(THIS_MAKEFILE) allfonts
@@ -273,9 +274,11 @@ clean: ## Cleanup x2t converter assemblies
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
-	echo "Usage:\n  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
+	echo "Usage:"
+	echo "  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
 	echo ''
-	echo "example:\n  make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields"
+	echo "example:"
+	echo "  make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields"
 	echo ''
 	echo "SDKJS options:"
 	printf "  %-15s %s\n" "sdkjs-branch" "proper branch name for build"
