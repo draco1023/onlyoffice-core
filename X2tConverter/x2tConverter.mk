@@ -161,6 +161,18 @@ define PARAMS_XML
 </TaskQueueDataConvert>
 endef
 
+# http://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=X2T
+define LOGO
+                                                                 
+██╗  ██╗██████╗ ████████╗    ██████╗ ██╗   ██╗██╗██╗     ██████╗ 
+╚██╗██╔╝╚════██╗╚══██╔══╝    ██╔══██╗██║   ██║██║██║     ██╔══██╗
+ ╚███╔╝  █████╔╝   ██║       ██████╔╝██║   ██║██║██║     ██║  ██║
+ ██╔██╗ ██╔═══╝    ██║       ██╔══██╗██║   ██║██║██║     ██║  ██║
+██╔╝ ██╗███████╗   ██║       ██████╔╝╚██████╔╝██║███████╗██████╔╝
+╚═╝  ╚═╝╚══════╝   ╚═╝       ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ 
+                                                                 
+endef
+
 .PHONY: help build sdkjs allfonts clean
 
 # Run this makefile help by default
@@ -168,12 +180,7 @@ endef
 
 
 .logo:
-	echo "██╗  ██╗██████╗ ████████╗"
-	echo "╚██╗██╔╝╚════██╗╚══██╔══╝"
-	echo " ╚███╔╝  █████╔╝   ██║   "
-	echo " ██╔██╗ ██╔═══╝    ██║   "
-	echo "██╔╝ ██╗███████╗   ██║   "
-	echo "╚═╝  ╚═╝╚══════╝   ╚═╝   "
+	echo "$${LOGO}"
 
 ---: ## --------------------------------------------------------------
 core_fonts: ## Download Core Fonts from Onlyoffice git repository
@@ -221,11 +228,11 @@ allfonts: core_fonts ## Generate Allfonts.js for converter
 	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
-		--input="./fonts;" \
-		--allfonts="./AllFonts.js" \
-		--images="./sdkjs/common/Images" \
-		--selection="./font_selection.bin" \
-		--use-system="false"
+	--input="./fonts;" \
+	--allfonts="./AllFonts.js" \
+	--images="./sdkjs/common/Images" \
+	--selection="./font_selection.bin" \
+	--use-system="false"
 
 ---: ## --------------------------------------------------------------
 build: sdkjs ## Assemble x2t converter from Core build artifacts
@@ -277,8 +284,8 @@ help: .logo ## Show this help and exit
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
 	echo ''
-	echo "example:"
-	echo "  make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields"
+	echo "Example:"
+	echo "  make -f $(THIS_MAKEFILE) build sdkjs-branch=ovm_fillable_fields"
 	echo ''
 	echo "SDKJS options:"
 	printf "  %-15s %s\n" "sdkjs-branch" "proper branch name for build"
