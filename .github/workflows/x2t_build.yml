@@ -1,0 +1,40 @@
+# Build x2t converter from pre-compiled artifacts
+name: X2T
+
+on:
+  push:
+    path-ignore:
+      - 'README.md'
+
+  pull_request:
+    branches:
+      - 'as_master'
+
+jobs:
+
+  build:
+    name: ${{ matrix.osname }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        name:
+          - ubuntu-16.04
+          - macOS-latest
+
+        include:
+          - name: ubuntu-16.04
+            os: ubuntu-16.04
+            osname: Linux
+
+          - name: macOS-latest
+            os: macOS-latest
+            osname: macOS
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Assemble X2T converter
+        run: |
+          cd ./X2tConverter
+          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
