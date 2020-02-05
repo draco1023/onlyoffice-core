@@ -34,6 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Setup external projects
+        run: |
+          git clone git@github.com:airslateinc/onlyoffice-sdkjs.git $HOME/onlyoffice-core
+          git clone git@github.com:ONLYOFFICE/core-fonts.git $HOME/onlyoffice-core
+
       - name: Assemble X2T converter
         run: |
           cd ./X2tConverter
