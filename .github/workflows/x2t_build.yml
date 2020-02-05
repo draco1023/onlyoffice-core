@@ -36,8 +36,9 @@ jobs:
 
       - name: Setup external projects
         run: |
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git $HOME/work
-          git clone https://github.com/ONLYOFFICE/core-fonts.git $HOME/work
+          cd $GITHUB_WORKSPACE/..
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone https://github.com/ONLYOFFICE/core-fonts.git
 
       - name: Assemble X2T converter
         run: |
