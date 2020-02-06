@@ -43,4 +43,5 @@ jobs:
       - name: Assemble X2T converter
         run: |
           cd ./X2tConverter
-          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+          make -f x2tConverter.mk
+          make -f x2tConverter.mk sdkjs sdkjs-branch=ovm_fillable_fields
