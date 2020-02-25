@@ -63,46 +63,66 @@ CORE_BIN := ./build/bin/$(TARGET)
 CORE_LIB := ./build/lib/$(TARGET)
 CORE_3DPARTY := ./Common/3dParty
 
+# Core builds for Core Libraries
 BUILDS += $(CORE_BIN)
 BUILDS += $(CORE_LIB)
-
-BUILDS += $(CORE_3DPARTY)/*/$(TARGET)/build/*
-BUILDS += $(CORE_3DPARTY)/boost/boost_*/build/$(TARGET)
-BUILDS += $(CORE_3DPARTY)/cryptopp/project/core_build/$(TARGET)
-BUILDS += $(CORE_3DPARTY)/v8/v8/out.gn/$(TARGET)
 
 BUILDS += ./*/core_build/$(TARGET)
 BUILDS += ./*/*/core_build/$(TARGET)
 BUILDS += ./*/*/*/core_build/$(TARGET)
 
+# Core third party components (V8 Engine, CEF, Boost...)
+BUILDS_VENDORS += $(CORE_3DPARTY)/*/$(TARGET)/build/*
+BUILDS_VENDORS += $(CORE_3DPARTY)/boost/boost_*/build/$(TARGET)
+BUILDS_VENDORS += $(CORE_3DPARTY)/cryptopp/project/core_build/$(TARGET)
+BUILDS_VENDORS += $(CORE_3DPARTY)/v8/v8/out.gn/$(TARGET)
+
+# X2T Converter binary
 BUILDS += ./X2tConverter/build/Qt/core_build/$(TARGET)
 
+# Artifactory max file size is 1000 Mb
 ZIP_SPLIT    := -s 500m
 ZIP_EXCLUDES := -x ".*" -x "__MACOSX" -x "*.DS_Store"
+DEST_DIR := ./.artifactory/$(TARGET)
+
+# If not specified Version - use `latest` label
+VERSION := latest
 
 .DEFAULT_GOAL = help
-.PHONY: help zip
+.PHONY: help zip vendors libs
 
 ---: ## --------------------------------------------------------------
-zip: ## Collect all build artifacts as ZIP archive
-	$(info $@: Creating ZIP archive from $(PLATFORM) build artifacts)
-	zip -rv $(SPLIT) ./build/$(PLATFORM)_build.zip $(BUILDS) $(ZIP_EXCLUDES)
+all: vendors libs ## Collect all Core and Vendors build artifacts as ZIP archive
+
+vendors: ## Collect Core `Common/3dParty` build artifacts as ZIP
+	$(info $@: Creating ZIP archive for $(TARGET) -> $(DEST_DIR))
+	# 	Creates os-specific destination dir
+	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
+	zip -rv $(ZIP_SPLIT) $(DEST_DIR)/common_3dparty.zip $(BUILDS_VENDORS) $(ZIP_EXCLUDES)
+
+libs: ## Collect all Core component builds artifacts as ZIP
+	$(info $@: Creating ZIP archive for $(TARGET) -> $(DEST_DIR)/$(VERSION))
+	# 	Creates os-specific destination dir
+	[ -d "$(DEST_DIR)/$(VERSION)" ] || mkdir -p $(DEST_DIR)/$(VERSION)
+	zip -rv $(DEST_DIR)/$(VERSION)/core_builds.zip $(BUILDS) $(ZIP_EXCLUDES)
 
 .logo:
 	echo "$${LOGO}"
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
-	echo "This Makefile collect OnlyOffice compiled artifacts to ZIP"
+	echo "This Makefile collect OnlyOffice compiled artifacts as ZIP"
 	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target>"
 	echo ''
 	echo "Example:"
-	echo "  make -f $(THIS_MAKEFILE) zip"
+	echo "  make -f $(THIS_MAKEFILE) all"
+	echo "  make -f $(THIS_MAKEFILE) libs VERSION=v5.4.0.0"
 	echo ''
 	echo "Targets:"
 	echo ''
+	echo "  All collected build artifacts will be placed into: $(DEST_DIR)"
 	grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(THIS_MAKEFILE) | awk 'BEGIN {FS = ":.*?## "}; \
 		{printf "  %-15s %s\n", $$1, $$2}'
 	echo ''
