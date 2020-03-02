@@ -59,7 +59,8 @@ jobs:
             onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
 
           zip -F $JFROG_DIR/common_3dparty.zip --out $JFROG_DIR/common_builds.zip
-          unzip -u $JFROG_DIR/*_builds.zip -d ${{ github.workspace }}/
+          unzip -u $JFROG_DIR/common_builds.zip -d ${{ github.workspace }}/
+          unzip -u $JFROG_DIR/core_builds.zip -d ${{ github.workspace }}/
 
       - name: Assemble X2T converter
         run: |
@@ -67,7 +68,7 @@ jobs:
           make -f x2tConverter.mk
           make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
 
-      - name: Store X2T Converter build for ${{ runner.os }}
+      - name: Store X2T Converter build for ${{ matrix.osname }}
         uses: actions/upload-artifact@v1
         with:
           name: x2t_converter_${{ matrix.build_target }}
