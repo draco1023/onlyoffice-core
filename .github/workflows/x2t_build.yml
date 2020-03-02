@@ -26,10 +26,12 @@ jobs:
           - name: ubuntu-16.04
             os: ubuntu-16.04
             osname: Linux
+            build_target: linux_64
 
           - name: macOS-latest
             os: macOS-latest
             osname: macOS
+            build_target: mac_64
 
     steps:
       - uses: actions/checkout@v1
@@ -39,6 +41,15 @@ jobs:
           cd $GITHUB_WORKSPACE/..
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
           git clone https://github.com/ONLYOFFICE/core-fonts.git
+
+      - name: Fetch build artifacts
+        uses: jfrog/setup-jfrog-cli@v1
+        env:
+          JF_ARTIFACTORY_SERVER: ${{ secrets.JFROG_INFRA_CONFIG }}
+        run: |
+          [ -d "./.artifactory/${{ runner.build_target }}" ] || mkdir -p ./.artifactory/${{ runner.build_target }}
+          jfrog --version
+          jfrog rt dl onlyoffice-core/core/${{ runner.build_target }}/latest/core_builds.zip ./.artifactory
 
       - name: Assemble X2T converter
         run: |
