@@ -59,7 +59,9 @@ jobs:
             onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
 
           zip -F $JFROG_DIR/common_3dparty.zip --out ${{ github.workspace }}/common_builds.zip
-          unzip -n $JFROG_DIR/*_builds.zip -d ${{ github.workspace }}/
+          unzip -u $JFROG_DIR/*_builds.zip -d ${{ github.workspace }}/
+
+          ls -lah ./Common/3dParty/icu/${{ matrix.build_target }}/build/
 
       - name: Assemble X2T converter
         run: |
