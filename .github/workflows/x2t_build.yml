@@ -17,6 +17,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
+
       matrix:
         name:
           - ubuntu-16.04
@@ -32,10 +34,13 @@ jobs:
             os: macOS-latest
             osname: macOS
             build_target: mac_64
+    env:
+      JFROG_DIR: ${{ github.workspace }}/.artifactory
 
     steps:
       - uses: actions/checkout@v1
 
+      # External projects used for Core converter assembly
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
@@ -45,16 +50,19 @@ jobs:
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
         env:
-          JF_ARTIFACTORY_SERVER: ${{ secrets.JFROG_INFRA_CONFIG }}
+          JF_ARTIFACTORY_SERVER: ${{ secrets.JF_ARTIFACTORY_SERVER }}
 
+      # Converter builds only from compiled artifacts (not support CI compilations!!!)
       - name: Fetch build artifacts
         run: |
-          [ -d "./.artifactory/${{ runner.build_target }}" ] || mkdir -p ./.artifactory/${{ runner.build_target }}
-          jfrog --version
-          jfrog rt dl onlyoffice-core/core/${{ runner.build_target }}/latest/core_builds.zip ./.artifactory
+          jfrog rt dl --flat --recursive \
+            onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
+
+          zip -F $JFROG_DIR/common_3dparty.zip --out ${{ github.workspace }}/common_builds.zip
+          unzip -n $JFROG_DIR/*_builds.zip -d ${{ github.workspace }}/
 
       - name: Assemble X2T converter
         run: |
           cd ./X2tConverter
           make -f x2tConverter.mk
-          make -f x2tConverter.mk sdkjs sdkjs-branch=ovm_fillable_fields
+          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
