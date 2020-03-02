@@ -68,7 +68,7 @@ jobs:
           make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
 
       - name: Store X2T Converter build for ${{ runner.os }}
-      - uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v1
         with:
           name: x2t_converter_${{ matrix.build_target }}
           path: ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/
