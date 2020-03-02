@@ -42,8 +42,8 @@ jobs:
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
           git clone https://github.com/ONLYOFFICE/core-fonts.git
 
+      - uses: jfrog/setup-jfrog-cli@v1
       - name: Fetch build artifacts
-        uses: jfrog/setup-jfrog-cli@v1
         env:
           JF_ARTIFACTORY_SERVER: ${{ secrets.JFROG_INFRA_CONFIG }}
         run: |
