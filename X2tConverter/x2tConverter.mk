@@ -74,8 +74,7 @@ BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)XpsFile$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)UnicodeConverter$(SHARED_EXT)
 
 # ICU shared library
-BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicudata$(SHARED_EXT)
-BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicuuc$(SHARED_EXT)
+BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # Not used for X2t Converter with assemble for OleObject
 # ifeq ($(PLATFORM),mac)
