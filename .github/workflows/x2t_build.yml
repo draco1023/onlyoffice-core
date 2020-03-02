@@ -58,13 +58,17 @@ jobs:
           jfrog rt dl --flat --recursive \
             onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
 
-          zip -F $JFROG_DIR/common_3dparty.zip --out ${{ github.workspace }}/common_builds.zip
+          zip -F $JFROG_DIR/common_3dparty.zip --out $JFROG_DIR/common_builds.zip
           unzip -u $JFROG_DIR/*_builds.zip -d ${{ github.workspace }}/
-
-          ls -lah ./Common/3dParty/icu/${{ matrix.build_target }}/build/
 
       - name: Assemble X2T converter
         run: |
           cd ./X2tConverter
           make -f x2tConverter.mk
           make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+
+      - name: Store X2T Converter build for ${{ runner.os }}
+      - uses: actions/upload-artifact@v1
+        with:
+          name: x2t_converter_${{ matrix.build_target }}
+          path: ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/
