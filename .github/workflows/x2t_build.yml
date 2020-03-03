@@ -69,7 +69,15 @@ jobs:
           make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
-        uses: actions/upload-artifact@v1
-        with:
-          name: x2t_converter_${{ matrix.build_target }}
-          path: ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/
+        run: |
+          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/ \
+          && zip -rv ${{ github.workspace }}/x2t_converter_${{ matrix.build_target }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
+
+      - name: Run Convertion Tests (docx -> pdf)
+        run: |
+          jfrog rt dl --flat \
+            onlyoffice-core/core/test_documents/docxFields.docx \
+            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/source/input.docx
+
+          cd ./X2tConverter/build/${{ matrix.build_target }}
+          ./x2t ./params.xml
