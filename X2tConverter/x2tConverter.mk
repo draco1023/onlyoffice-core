@@ -74,8 +74,7 @@ BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)XpsFile$(SHARED_EXT)
 BUILT_ARTIFACT += $(CORE_LIB)/$(LIB_PREFIX)UnicodeConverter$(SHARED_EXT)
 
 # ICU shared library
-BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicudata*$(SHARED_EXT)
-BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicuuc*$(SHARED_EXT)
+BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # Not used for X2t Converter with assemble for OleObject
 # ifeq ($(PLATFORM),mac)
@@ -183,7 +182,7 @@ endef
 	echo "$${LOGO}"
 
 ---: ## --------------------------------------------------------------
-core_fonts: ## Download Core Fonts from Onlyoffice git repository
+core_fonts: ## Download Core Fonts from OnlyOffice git repository
 	echo "$@: Downloading Core Fonts from $(CORE_FONTS_SRC_URL)"
 
 	# Clone repository if it not exists
@@ -218,7 +217,7 @@ sdkjs: ## Build SDKJS from sources
 		cd $(SDKJS_DIR) \
 			&& grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
 	fi
-	echo "$@: Build successfull"
+	echo "$@: Build successfully"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure

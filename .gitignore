@@ -70,3 +70,6 @@ X2tConverter/Common/DocxFormat/DocxFormatLib/Makefile
 
 ### VSCODE project specific configuration
 !.vscode/c_cpp_properties.json
+
+## Artifactory temp folder
+.artifactory

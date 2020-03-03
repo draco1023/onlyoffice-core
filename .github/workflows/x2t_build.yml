@@ -1,0 +1,83 @@
+# Build x2t converter from pre-compiled artifacts
+name: X2T
+
+on:
+  push:
+    path-ignore:
+      - 'README.md'
+
+  pull_request:
+    branches:
+      - 'as_master'
+
+jobs:
+
+  build:
+    name: ${{ matrix.osname }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        name:
+          - ubuntu-16.04
+          - macOS-latest
+
+        include:
+          - name: ubuntu-16.04
+            os: ubuntu-16.04
+            osname: Linux
+            build_target: linux_64
+
+          - name: macOS-latest
+            os: macOS-latest
+            osname: macOS
+            build_target: mac_64
+    env:
+      JFROG_DIR: ${{ github.workspace }}/.artifactory
+
+    steps:
+      - uses: actions/checkout@v1
+
+      # External projects used for Core converter assembly
+      - name: Setup external projects
+        run: |
+          cd $GITHUB_WORKSPACE/..
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone https://github.com/ONLYOFFICE/core-fonts.git
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v1
+        env:
+          JF_ARTIFACTORY_SERVER: ${{ secrets.JF_ARTIFACTORY_SERVER }}
+
+      # Converter builds only from compiled artifacts (not support CI compilations!!!)
+      - name: Fetch build artifacts
+        run: |
+          jfrog rt dl --flat --recursive \
+            onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
+
+          zip -F $JFROG_DIR/common_3dparty.zip --out $JFROG_DIR/common_builds.zip
+          unzip -u $JFROG_DIR/common_builds.zip -d ${{ github.workspace }}/
+          unzip -u $JFROG_DIR/core_builds.zip -d ${{ github.workspace }}/
+
+      - name: Assemble X2T converter
+        run: |
+          cd ./X2tConverter
+          make -f x2tConverter.mk
+          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+
+      - name: Store X2T Converter build for ${{ matrix.osname }}
+        run: |
+          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/ \
+          && zip -rv ${{ github.workspace }}/x2t_converter_${{ matrix.build_target }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
+
+      - name: Run Convertion Tests (docx -> pdf)
+        run: |
+          jfrog rt dl --flat \
+            onlyoffice-core/core/test_documents/docxFields.docx \
+            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/source/input.docx
+
+          cd ./X2tConverter/build/${{ matrix.build_target }}
+          ./x2t ./params.xml
