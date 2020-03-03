@@ -1,3 +1,30 @@
+![x2t converter](https://github.com/airslateinc/onlyoffice-core/workflows/X2T/badge.svg)
+![Platforms | OS X | Linux](https://img.shields.io/badge/Platforms-%20OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat)
+
+# OnlyOffice Core (airSlate edition)
+
+## X2T Converter (Docx -> PDF with field extract)
+
+### Features:
+
+- Extract fillable field from docx OleObject and writes it as PostScript into PDF
+
+### Build from sources:
+
+- Compile OnlyOffice Core (Ubuntu - GCC 8 / macOs - Clang)
+- Go to X2T converter directory: `cd ./X2tConverter`
+- Run makefile: `make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields`
+
+### Run x2t converter:
+
+- Go to x2t converter build directory: `.X2tConverter/build/{linux_64|mac_64}/`
+- Copy you [test docx file][docx_demo_link] to `source` directory with name `input.docx`
+- Run: `./x2t ./params.xml`
+- See result PDF into `output` folder
+
+[docx_demo_link]: https://artifactory.infrateam.xyz/onlyoffice-core/core/test_documents/docxFields.docx
+
+---
 
 [![License](https://img.shields.io/badge/License-GNU%20AGPL%20V3-green.svg?style=flat)](https://www.gnu.org/licenses/agpl-3.0.en.html)     ![x2tconverter](https://img.shields.io/badge/x2tconverter-v2.0.2.376-blue.svg?style=flat) ![Platforms Windows | OS X | Linux](https://img.shields.io/badge/Platforms-Windows%20%7C%20OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat)
 
