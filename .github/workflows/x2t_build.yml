@@ -45,7 +45,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/..
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
-          git clone https://github.com/ONLYOFFICE/core-fonts.git
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
