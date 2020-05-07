@@ -6,7 +6,10 @@
 git clone --depth 1 -b as_master https://github.com/airslateinc/onlyoffice-core.git
 ```
 
-Создать свою ветку от `as_master` и изменить название ветки SDKJS с которой необходимо собрать конвертер.
+Создать свою ветку от `as_master` и изменить название ветки SDKJS в файле `SDKJS_VERSION` с которой необходимо собрать конвертер.
+
+> **_NOTE:_** Ветка с префиксом `converter/*` предназначена для того, чтобы результаты билда отправлять в Artifactory. \
+То есть, запушив коммит в ветку с таким префиксом, все артефакты билда будут сохранены в `https://artifactory.infrateam.xyz/onlyoffice-core/converter-dev/{SDKJS_VERSION}/*.zip`
 
 ```bash
 cd ./onlyoffice-core
