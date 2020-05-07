@@ -36,16 +36,23 @@ jobs:
             build_target: mac_64
     env:
       JFROG_DIR: ${{ github.workspace }}/.artifactory
+      ZIP_EXCLUDES: -x ".*" -x "__MACOSX" -x "*.DS_Store"
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Get SDKJS version
+        id: sdkjs-version-tag
+        run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
 
       # External projects used for Core converter assembly
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
-          git clone https://github.com/ONLYOFFICE/core-fonts.git
+          git clone --depth 1 -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
@@ -63,21 +70,29 @@ jobs:
           unzip -u $JFROG_DIR/core_builds.zip -d ${{ github.workspace }}/
 
       - name: Assemble X2T converter
+        working-directory: X2tConverter
         run: |
-          cd ./X2tConverter
+          #set number of cores for build
+          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
           make -f x2tConverter.mk
-          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+          make -f x2tConverter.mk build sdkjs-branch=${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
+        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
-          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/ \
-          && zip -rv ${{ github.workspace }}/x2t_converter_${{ matrix.build_target }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
+          zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
 
       - name: Run Convertion Tests (docx -> pdf)
         run: |
           jfrog rt dl --flat \
             onlyoffice-core/core/test_documents/docxFields.docx \
-            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/source/input.docx
+            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
 
-          cd ./X2tConverter/build/${{ matrix.build_target }}
+          cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
+          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip

@@ -47,8 +47,11 @@ else
 	ARCH := 32
 endif
 
-TARGET := $(PLATFORM)_$(ARCH)
-DEST_DIR := ./build/$(TARGET)
+ZIP_EXCLUDES := -x ".*" -x "__MACOSX" -x "*.DS_Store"
+
+SDKJS_TAG  := $(if $(sdkjs-branch),$(sdkjs-branch),"ovm_fillable_fields")
+TARGET     := $(PLATFORM)_$(ARCH)
+DEST_DIR   := ./build/$(TARGET)_$(SDKJS_TAG)
 
 # Core project builds' relative dir path
 CORE_DIR := $(abspath $(CWD)/..)
@@ -84,15 +87,15 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
-SDKJS_DIR := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
+SDKJS_DIR     := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
 
-SDKJS_VENDOR = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
-SDKJS_JQUERY = jquery/jquery.min.js
+SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
+SDKJS_JQUERY  = jquery/jquery.min.js
 SDKJS_XREGEXP = xregexp/xregexp-all-min.js
 
 # Core fonts SRC repository url
-CORE_FONTS_SRC_URL := git@github.com:ONLYOFFICE/core-fonts.git
-CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../core-fonts)
+CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
+CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../onlyoffice-core-fonts)
 
 # X2T Converter requred dirs
 X2T_REQ_DIRS += result
@@ -188,15 +191,16 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 	# Clone repository if it not exists
 	[ -d $(CORE_FONTS_DIR) ] \
 		&& echo "$@: Use existing Core Fonts project -> $(CORE_FONTS_DIR)" \
-		|| git clone $(CORE_FONTS_SRC_URL) $(CORE_FONTS_DIR)
+		|| git clone --depth 1 $(CORE_FONTS_SRC_URL) $(CORE_FONTS_DIR)
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
+	echo "$@: Build SDKJS from TAG: $(SDKJS_TAG)"
 	
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
-		|| git clone $(SDKJS_SRC_URL) $(SDKJS_DIR)
+		|| git clone --depth 1 -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
 
 	# Checkout to defined from input branch name
 	# 'sdkjs-branch=branch-name'
@@ -274,12 +278,18 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	# Generate Allfonts.js
 	$(MAKE) -f $(THIS_MAKEFILE) allfonts
 
+	# Create zip archive from Converters files
+	cd $(DEST_DIR) && zip -rv $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
+
 clean: ## Cleanup x2t converter assemblies
 	echo "Clear x2t assembly target dir: $(TARGET)"
-	rm -rf $(DEST_DIR)
+	rm -rf $(SDKJS_DIR)/deploy
+	rm -rf ./build/$(TARGET)*
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
+	echo SDKJS_VERSION: $(SDKJS_TAG)
+	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
 	echo ''
@@ -287,8 +297,7 @@ help: .logo ## Show this help and exit
 	echo "  make -f $(THIS_MAKEFILE) build sdkjs-branch=ovm_fillable_fields"
 	echo ''
 	echo "SDKJS options:"
-	printf "  %-15s %s\n" "sdkjs-branch" "proper branch name for build"
-	printf "  %-15s %s\n" "            " "e.g. 'master'"
+	printf "  %-15s %s\n" "sdkjs-branch" "branch name which you want to use for build"
 	echo ''
 	echo "Targets:"
 	echo ''
