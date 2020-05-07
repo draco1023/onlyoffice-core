@@ -37,7 +37,6 @@ jobs:
     env:
       JFROG_DIR: ${{ github.workspace }}/.artifactory
       ZIP_EXCLUDES: -x ".*" -x "__MACOSX" -x "*.DS_Store"
-      MAKEFLAGS: "-j$(getconf _NPROCESSORS_ONLN)"
 
     steps:
       - uses: actions/checkout@v1
@@ -92,3 +91,8 @@ jobs:
 
           cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
+          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
