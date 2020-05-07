@@ -98,7 +98,7 @@ jobs:
           path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Store converter builds to Artifactory
-        if: startsWith( 'converter/', ${GITHUB_REF##*/} )
+        if: startsWith(github.ref, 'refs/heads/converter/')
         run: |
           jfrog rt u \
             ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip \
