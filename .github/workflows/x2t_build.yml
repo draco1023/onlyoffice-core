@@ -62,22 +62,26 @@ jobs:
           unzip -u $JFROG_DIR/common_builds.zip -d ${{ github.workspace }}/
           unzip -u $JFROG_DIR/core_builds.zip -d ${{ github.workspace }}/
 
+      - name: Get SDKJS version
+        id: sdkjs-version-tag
+        run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
+
       - name: Assemble X2T converter
         run: |
           cd ./X2tConverter
           make -f x2tConverter.mk
-          make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields
+          make -f x2tConverter.mk build sdkjs-branch=${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
         run: |
-          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/ \
-          && zip -rv ${{ github.workspace }}/x2t_converter_${{ matrix.build_target }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
+          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/ \
+          && zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
 
       - name: Run Convertion Tests (docx -> pdf)
         run: |
           jfrog rt dl --flat \
             onlyoffice-core/core/test_documents/docxFields.docx \
-            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}/source/input.docx
+            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
 
-          cd ./X2tConverter/build/${{ matrix.build_target }}
+          cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
