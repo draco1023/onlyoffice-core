@@ -39,13 +39,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
 
       # External projects used for Core converter assembly
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
+          git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
@@ -67,15 +69,18 @@ jobs:
         run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
 
       - name: Assemble X2T converter
+        working-directory: X2tConverter
         run: |
-          cd ./X2tConverter
+          #set number of cores for build
+          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
           make -f x2tConverter.mk
           make -f x2tConverter.mk build sdkjs-branch=${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
+        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
-          cd ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/ \
-          && zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
+          zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . -x ".*" -x "__MACOSX" -x "*.DS_Store"
 
       - name: Run Convertion Tests (docx -> pdf)
         run: |

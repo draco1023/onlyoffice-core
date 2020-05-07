@@ -191,7 +191,7 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 	# Clone repository if it not exists
 	[ -d $(CORE_FONTS_DIR) ] \
 		&& echo "$@: Use existing Core Fonts project -> $(CORE_FONTS_DIR)" \
-		|| git clone $(CORE_FONTS_SRC_URL) $(CORE_FONTS_DIR)
+		|| git clone --depth 1 $(CORE_FONTS_SRC_URL) $(CORE_FONTS_DIR)
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
@@ -200,7 +200,7 @@ sdkjs: ## Build SDKJS from sources
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
-		|| git clone $(SDKJS_SRC_URL) $(SDKJS_DIR)
+		|| git clone --depth 1 $(SDKJS_SRC_URL) $(SDKJS_DIR)
 
 	# Checkout to defined from input branch name
 	# 'sdkjs-branch=branch-name'
