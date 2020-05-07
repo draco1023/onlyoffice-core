@@ -200,7 +200,7 @@ sdkjs: ## Build SDKJS from sources
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
-		|| git clone --depth 1 $(SDKJS_SRC_URL) $(SDKJS_DIR)
+		|| git clone --depth 1 -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
 
 	# Checkout to defined from input branch name
 	# 'sdkjs-branch=branch-name'
@@ -288,6 +288,8 @@ clean: ## Cleanup x2t converter assemblies
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
+	echo SDKJS_VERSION: $(SDKJS_TAG)
+	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"
 	echo ''
@@ -295,8 +297,7 @@ help: .logo ## Show this help and exit
 	echo "  make -f $(THIS_MAKEFILE) build sdkjs-branch=ovm_fillable_fields"
 	echo ''
 	echo "SDKJS options:"
-	printf "  %-15s %s\n" "sdkjs-branch" "proper branch name for build"
-	printf "  %-15s %s\n" "            " "e.g. 'master'"
+	printf "  %-15s %s\n" "sdkjs-branch" "branch name which you want to use for build"
 	echo ''
 	echo "Targets:"
 	echo ''

@@ -5,19 +5,19 @@
 
 ## X2T Converter (Docx -> PDF with field extract)
 
-### Features:
+### Features
 
 - Extract fillable field from docx OleObject and writes it as PostScript into PDF
 
-### Build from sources:
+### Build from sources
 
 - Compile OnlyOffice Core (Ubuntu - GCC 8 / macOs - Clang)
 - Go to X2T converter directory: `cd ./X2tConverter`
 - Run makefile: `make -f x2tConverter.mk build sdkjs-branch=ovm_fillable_fields`
 
-### Run x2t converter:
+### Run x2t converter
 
-- Go to x2t converter build directory: `.X2tConverter/build/{linux_64|mac_64}/`
+- Go to x2t converter build directory: `./X2tConverter/build/{linux_64|mac_64}/`
 - Copy you [test docx file][docx_demo_link] to `source` directory with name `input.docx`
 - Run: `./x2t ./params.xml`
 - See result PDF into `output` folder
