@@ -96,6 +96,10 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
 SDKJS_DIR     := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
 
+# Application Metadata
+SDK_PRODUCT_VERSION := "$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
+SDK_BUILD_NUMBER    := "$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
+
 SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
 SDKJS_JQUERY  = jquery/jquery.min.js
 SDKJS_XREGEXP = xregexp/xregexp-all-min.js
@@ -221,23 +225,20 @@ sdkjs: ## Build SDKJS from sources
 	# Always cleanup previous sdkjs builds to avoid using wrong builds
 	[ ! -d $(SDKJS_DIR)/deploy ] || rm -rf $(SDKJS_DIR)/deploy
 
-	# Application Metadata
-	PRODUCT_VERSION="$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
-	BUILD_NUMBER="$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
-
 	# # Build sdkjs
 	echo "$@: Building sdkjs from sources..."
 	cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build
 	cd $(SDKJS_DIR) \
 		&& COMPANY_NAME=airSlate \
 		PRODUCT_NAME=onlyoffice-converter \
-		PRODUCT_VERSION="$$PRODUCT_VERSION" \
-		BUILD_NUMBER="$$BUILD_NUMBER" \
+		PRODUCT_VERSION="$(SDK_PRODUCT_VERSION)" \
+		BUILD_NUMBER="$(SDK_BUILD_NUMBER)" \
 		PUBLISHER_NAME="airSlate Inc." \
 		APP_COPYRIGHT="Copyright (C) airSlate Inc. 2019-$(shell date +%Y). All rights reserved" \
-		PUBLISHER_URL="https://airslate.com/" \
+		PUBLISHER_URL="https://airslate.com" \
 		grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
-	echo "$@: Build successfully $(SDKJS_TAG) $$PRODUCT_VERSION.$$BUILD_NUMBER"
+	echo "$(SDKJS_TAG) (build: $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER))" > $(SDKJS_DIR)/deploy/sdkjs/.VERSION
+	echo "$@: Build successfully $(SDKJS_TAG) $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER)"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
@@ -277,6 +278,9 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 		cp -R $(SDKJS_DIR)/deploy/sdkjs/$${sdkjs_dir} $(DEST_DIR)/sdkjs/$${sdkjs_dir}; \
 		echo "$@: Copy ./deploy/sdkjs/$${sdkjs_dir} -> $(DEST_DIR)/sdkjs/$${sdkjs_dir}"; \
 	done
+
+	# Copy SDKJS VERSION file
+	[ ! -f $(SDKJS_DIR)/deploy/sdkjs/.VERSION ] || cp $(SDKJS_DIR)/deploy/sdkjs/.VERSION $(DEST_DIR)/sdkjs/
 
 	echo "$@: Download JQuery and XRegexp"
 	for sdkjs_vnd in $(SDKJS_JQUERY) $(SDKJS_XREGEXP); do \
