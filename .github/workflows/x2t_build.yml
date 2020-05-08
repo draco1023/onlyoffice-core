@@ -39,7 +39,7 @@ jobs:
       ZIP_EXCLUDES: -x ".*" -x "__MACOSX" -x "*.DS_Store"
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
 
@@ -76,12 +76,17 @@ jobs:
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
 
           make -f x2tConverter.mk
-          make -f x2tConverter.mk build sdkjs-branch=${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+          make -f x2tConverter.mk build
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
           zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
+          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
 
       - name: Run Convertion Tests (docx -> pdf)
         run: |
@@ -91,11 +96,6 @@ jobs:
 
           cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
-
-      - uses: actions/upload-artifact@v1
-        with:
-          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
-          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Store converter builds to Artifactory
         if: startsWith(github.ref, 'refs/heads/converter/')
