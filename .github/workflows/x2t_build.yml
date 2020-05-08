@@ -37,9 +37,10 @@ jobs:
     env:
       JFROG_DIR: ${{ github.workspace }}/.artifactory
       ZIP_EXCLUDES: -x ".*" -x "__MACOSX" -x "*.DS_Store"
+      X2T_BUILD_DIR: ${{ github.workspace }}/X2tConverter/build
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
 
@@ -51,7 +52,7 @@ jobs:
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          git clone --depth 1 -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
           git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
@@ -76,32 +77,40 @@ jobs:
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
 
           make -f x2tConverter.mk
-          make -f x2tConverter.mk build sdkjs-branch=${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+          make -f x2tConverter.mk build
 
       - name: Store X2T Converter build for ${{ matrix.osname }}
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
-          zip -rv ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
+          zip -rv $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
+
+      - name: Save convereter build as workflow artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: x2t_converters_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
+          path: X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Run Convertion Tests (docx -> pdf)
+        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
           jfrog rt dl --flat \
             onlyoffice-core/core/test_documents/docxFields.docx \
-            ${{ github.workspace }}/X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
+            $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
 
-          cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
 
-      - uses: actions/upload-artifact@v1
+      - name: Store converter run result for failed test
+        uses: actions/upload-artifact@v2
+        if: failure()
         with:
-          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
-          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
+          name: 'output_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}'
+          path: $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/result
 
-      - name: Store converter builds to Artifactory
+      - name: Store converter builds to Artifactory for 'converter/*' branches
         if: startsWith(github.ref, 'refs/heads/converter/')
         run: |
           jfrog rt u \
-            ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip \
+            $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip \
             onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
           echo "::warning file=Download_URL::https://artifactory.infrateam.xyz/onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip"
 

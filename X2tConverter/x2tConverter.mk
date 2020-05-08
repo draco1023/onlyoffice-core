@@ -49,7 +49,14 @@ endif
 
 ZIP_EXCLUDES := -x ".*" -x "__MACOSX" -x "*.DS_Store"
 
-SDKJS_TAG  := $(if $(sdkjs-branch),$(sdkjs-branch),"ovm_fillable_fields")
+# Use version of SDKJS from version file as defaults for SDKJS builds
+ifneq ("$(wildcard ./SDKJS_VERSION)","")
+SDKJS_VERSION ?= $(shell cat ./SDKJS_VERSION | head -n 1)
+else
+SDKJS_VERSION ?= ovm_fillable_fields
+endif
+
+SDKJS_TAG  := $(if $(sdkjs-branch),$(sdkjs-branch),$(SDKJS_VERSION))
 TARGET     := $(PLATFORM)_$(ARCH)
 DEST_DIR   := ./build/$(TARGET)_$(SDKJS_TAG)
 
@@ -88,6 +95,10 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
 SDKJS_DIR     := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
+
+# Application Metadata
+SDK_PRODUCT_VERSION := "$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
+SDK_BUILD_NUMBER    := "$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
 
 SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
 SDKJS_JQUERY  = jquery/jquery.min.js
@@ -195,18 +206,15 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
-	echo "$@: Build SDKJS from TAG: $(SDKJS_TAG)"
 	
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
-		|| git clone --depth 1 -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
+		|| git clone -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
 
-	# Checkout to defined from input branch name
+	# Checkout to defined from input branch name or use TAG from SDKJS_VERSION
 	# 'sdkjs-branch=branch-name'
-	if [ "$(sdkjs-branch)" ]; then \
-		cd $(SDKJS_DIR) && git checkout $(sdkjs-branch); \
-	fi
+	cd $(SDKJS_DIR) && git checkout $(SDKJS_TAG)
 
 	# Install grunt-cli
 	if [ "$(shell command -v grunt 2>/dev/null)" = "" ]; then \
@@ -214,14 +222,23 @@ sdkjs: ## Build SDKJS from sources
 		npm install -g grunt-cli; \
 	fi
 
-	# Build sdkjs
-	if [ ! -d $(SDKJS_DIR)/deploy ]; then \
-		echo "$@: Building sdkjs from sources..."; \
-		cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build; \
-		cd $(SDKJS_DIR) \
-			&& grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js; \
-	fi
-	echo "$@: Build successfully"
+	# Always cleanup previous sdkjs builds to avoid using wrong builds
+	[ ! -d $(SDKJS_DIR)/deploy ] || rm -rf $(SDKJS_DIR)/deploy
+
+	# # Build sdkjs
+	echo "$@: Building sdkjs from sources..."
+	cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build
+	cd $(SDKJS_DIR) \
+		&& COMPANY_NAME=airSlate \
+		PRODUCT_NAME=onlyoffice-converter \
+		PRODUCT_VERSION="$(SDK_PRODUCT_VERSION)" \
+		BUILD_NUMBER="$(SDK_BUILD_NUMBER)" \
+		PUBLISHER_NAME="airSlate Inc." \
+		APP_COPYRIGHT="Copyright (C) airSlate Inc. 2019-$(shell date +%Y). All rights reserved" \
+		PUBLISHER_URL="https://airslate.com" \
+		grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+	echo "$(SDKJS_TAG) (build: $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER))" > $(SDKJS_DIR)/deploy/sdkjs/.VERSION
+	echo "$@: Build successfully $(SDKJS_TAG) $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER)"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
@@ -262,6 +279,9 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 		echo "$@: Copy ./deploy/sdkjs/$${sdkjs_dir} -> $(DEST_DIR)/sdkjs/$${sdkjs_dir}"; \
 	done
 
+	# Copy SDKJS VERSION file
+	[ ! -f $(SDKJS_DIR)/deploy/sdkjs/.VERSION ] || cp $(SDKJS_DIR)/deploy/sdkjs/.VERSION $(DEST_DIR)/sdkjs/
+
 	echo "$@: Download JQuery and XRegexp"
 	for sdkjs_vnd in $(SDKJS_JQUERY) $(SDKJS_XREGEXP); do \
 		[ -f $(DEST_DIR)/sdkjs/vendor/$${sdkjs_vnd} ] || $(CURL) $(DEST_DIR)/sdkjs/vendor/$${sdkjs_vnd} $(SDKJS_VENDOR)/$${sdkjs_vnd}; \
@@ -284,7 +304,7 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 clean: ## Cleanup x2t converter assemblies
 	echo "Clear x2t assembly target dir: $(TARGET)"
 	rm -rf $(SDKJS_DIR)/deploy
-	rm -rf ./build/$(TARGET)*
+	rm -rf ./build/$(TARGET)_$(SDKJS_TAG)
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
@@ -298,6 +318,7 @@ help: .logo ## Show this help and exit
 	echo ''
 	echo "SDKJS options:"
 	printf "  %-15s %s\n" "sdkjs-branch" "branch name which you want to use for build"
+	printf "  %-15s %s\n" "            " "if not specified - use version from SDKJS_VERSION file"
 	echo ''
 	echo "Targets:"
 	echo ''
