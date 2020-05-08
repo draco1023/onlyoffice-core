@@ -86,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
-          path: ${{ github.workspace }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
+          path: ${{ github.workspace }}/X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
 
       - name: Run Convertion Tests (docx -> pdf)
         run: |
@@ -97,7 +97,14 @@ jobs:
           cd ./X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           ./x2t ./params.xml
 
-      - name: Store converter builds to Artifactory
+      # Store converted result for failed test
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: 'output_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}'
+          path: ${{ github.workspace }}/X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/result
+
+      - name: Store converter builds to Artifactory for 'converter/*' branches
         if: startsWith(github.ref, 'refs/heads/converter/')
         run: |
           jfrog rt u \
