@@ -87,6 +87,7 @@ jobs:
       - name: Save convereter build as workflow artifacts
         uses: actions/upload-artifact@v2
         with:
+          name: x2t_converters_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
           path: X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Run Convertion Tests (docx -> pdf)
