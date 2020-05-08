@@ -84,10 +84,10 @@ jobs:
         run: |
           zip -rv $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
 
-      - uses: actions/upload-artifact@v2
+      - name: Save convereter build as workflow artifacts
+        uses: actions/upload-artifact@v2
         with:
-          name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
-          path: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+          path: X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Run Convertion Tests (docx -> pdf)
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
@@ -98,8 +98,8 @@ jobs:
 
           ./x2t ./params.xml
 
-      # Store converted result for failed test
-      - uses: actions/upload-artifact@v2
+      - name: Store converter run result for failed test
+        uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: 'output_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}'
