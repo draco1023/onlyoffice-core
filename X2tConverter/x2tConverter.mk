@@ -206,7 +206,7 @@ sdkjs: ## Build SDKJS from sources
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
-		|| git clone --depth 1 -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
+		|| git clone -b $(SDKJS_TAG) $(SDKJS_SRC_URL) $(SDKJS_DIR)
 
 	# Checkout to defined from input branch name or use TAG from SDKJS_VERSION
 	# 'sdkjs-branch=branch-name'

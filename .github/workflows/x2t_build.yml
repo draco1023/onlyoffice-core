@@ -52,7 +52,7 @@ jobs:
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          git clone --depth 1 -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+          git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
           git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: 'x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip'
-          path: $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
+          path: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Run Convertion Tests (docx -> pdf)
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
