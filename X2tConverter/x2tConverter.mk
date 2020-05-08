@@ -111,20 +111,6 @@ X2T_REQ_DIRS += fonts
 X2T_REQ_DIRS += sdkjs/vendor/jquery
 X2T_REQ_DIRS += sdkjs/vendor/xregexp
 
-# Application Metadata
-COMPANY_NAME    ?= airSlate
-PRODUCT_NAME    ?= onlyoffice-converter
-PRODUCT_VERSION ?= $(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)
-BUILD_NUMBER    ?= $(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)
-PUBLISHER_NAME  ?= airSlate Inc.
-APP_COPYRIGHT   ?= Copyright (C) $(PUBLISHER_NAME) 2019-$(shell date +%Y). All rights reserved
-PUBLISHER_URL   ?= https://airslate.com
-
-APP_BUILD_ENV += PRODUCT_VERSION=$(PRODUCT_VERSION)
-APP_BUILD_ENV += BUILD_NUMBER=$(BUILD_NUMBER)
-APP_BUILD_ENV += APP_COPYRIGHT="$(APP_COPYRIGHT)"
-APP_BUILD_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
-
 define DOCT_RENDERER_CONFIG
 <Settings>
   <file>./sdkjs/common/Native/native.js</file>
@@ -216,7 +202,6 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
-	echo "$@: Build SDKJS from TAG: $(SDKJS_TAG)@$(BUILD_NUMBER) VERSION: $(PRODUCT_VERSION)"
 	
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
@@ -236,12 +221,23 @@ sdkjs: ## Build SDKJS from sources
 	# Always cleanup previous sdkjs builds to avoid using wrong builds
 	[ ! -d $(SDKJS_DIR)/deploy ] || rm -rf $(SDKJS_DIR)/deploy
 
+	# Application Metadata
+	PRODUCT_VERSION="$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
+	BUILD_NUMBER="$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
+
 	# # Build sdkjs
 	echo "$@: Building sdkjs from sources..."
 	cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build
 	cd $(SDKJS_DIR) \
-		# && $(APP_BUILD_ENV) grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
-	echo "$@: Build successfully $(SDKJS_TAG) $(PRODUCT_VERSION)"
+		&& COMPANY_NAME=airSlate \
+		PRODUCT_NAME=onlyoffice-converter \
+		PRODUCT_VERSION="$$PRODUCT_VERSION" \
+		BUILD_NUMBER="$$BUILD_NUMBER" \
+		PUBLISHER_NAME="airSlate Inc." \
+		APP_COPYRIGHT="Copyright (C) airSlate Inc. 2019-$(shell date +%Y). All rights reserved" \
+		PUBLISHER_URL="https://airslate.com/" \
+		grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+	echo "$@: Build successfully $(SDKJS_TAG) $$PRODUCT_VERSION.$$BUILD_NUMBER"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
