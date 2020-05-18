@@ -48,11 +48,18 @@ jobs:
         id: sdkjs-version-tag
         run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
 
+      - name: Get SDKJS sources
+        uses: actions/checkout@v2
+        with:
+          repository: airslateinc/onlyoffice-sdkjs
+          ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+          path: onlyoffice-sdkjs
+
       # External projects used for Core converter assembly
       - name: Setup external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
+        # git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
           git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
 
       - name: Setup JFrog CLI
