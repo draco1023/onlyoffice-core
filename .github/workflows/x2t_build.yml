@@ -53,7 +53,7 @@ jobs:
         with:
           repository: airslateinc/onlyoffice-sdkjs
           ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
-          path: onlyoffice-sdkjs
+          path: ../onlyoffice-sdkjs
 
       # External projects used for Core converter assembly
       # git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
