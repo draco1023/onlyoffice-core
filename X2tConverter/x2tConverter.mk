@@ -103,6 +103,7 @@ SDK_BUILD_NUMBER    := "$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
 SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
 SDKJS_JQUERY  = jquery/jquery.min.js
 SDKJS_XREGEXP = xregexp/xregexp-all-min.js
+SDKJS_PARAMS  = --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
 
 # Core fonts SRC repository url
 CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
@@ -236,7 +237,7 @@ sdkjs: ## Build SDKJS from sources
 		PUBLISHER_NAME="airSlate Inc." \
 		APP_COPYRIGHT="Copyright (C) airSlate Inc. 2019-$(shell date +%Y). All rights reserved" \
 		PUBLISHER_URL="https://airslate.com" \
-		grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+		grunt $(SDKJS_PARAMS)
 	echo "$(SDKJS_TAG) (build: $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER))" > $(SDKJS_DIR)/deploy/sdkjs/.VERSION
 	echo "$@: Build successfully $(SDKJS_TAG) $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER)"
 
