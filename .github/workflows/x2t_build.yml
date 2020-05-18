@@ -94,7 +94,7 @@ jobs:
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
           jfrog rt dl --flat \
-            onlyoffice-core/core/test_documents/docxFields.docx \
+            onlyoffice-core/core/test_documents/sample_fillable_fields.docx \
             $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
 
           ./x2t ./params.xml
