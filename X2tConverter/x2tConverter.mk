@@ -94,20 +94,24 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
-SDKJS_DIR     := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
+SDKJS_DIR     := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-sdkjs)
+SDK_BUILD_NUMBER := 0
+SDK_PRODUCT_VERSION := 0
 
 # Application Metadata
+ifneq ("$(wildcard $(SDKJS_DIR)/.git/config)","")
 SDK_PRODUCT_VERSION := "$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
 SDK_BUILD_NUMBER    := "$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
+endif
 
 SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
 SDKJS_JQUERY  = jquery/jquery.min.js
 SDKJS_XREGEXP = xregexp/xregexp-all-min.js
-SDKJS_PARAMS  = --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+SDKJS_PARAMS  = --force --base build --gruntfile build/Gruntfile.js
 
 # Core fonts SRC repository url
 CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
-CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../onlyoffice-core-fonts)
+CORE_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-core-fonts)
 
 # X2T Converter requred dirs
 X2T_REQ_DIRS += result
@@ -227,7 +231,7 @@ sdkjs: ## Build SDKJS from sources
 	[ ! -d $(SDKJS_DIR)/deploy ] || rm -rf $(SDKJS_DIR)/deploy
 
 	# # Build sdkjs
-	echo "$@: Building sdkjs from sources..."
+	echo "$@: Building sdkjs $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER) from sources..."
 	cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build
 	cd $(SDKJS_DIR) \
 		&& COMPANY_NAME=airSlate \
