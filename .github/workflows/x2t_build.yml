@@ -68,8 +68,8 @@ jobs:
       - name: Creates aliases for external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          ln -sfv $JFROG_DIR/onlyoffice-sdkjs/ $(PWD)
-          ln -sfv $JFROG_DIR/onlyoffice-core-fonts/ $(PWD)
+          ln -sfv $JFROG_DIR/onlyoffice-sdkjs/ $(pwd)
+          ln -sfv $JFROG_DIR/onlyoffice-core-fonts/ $(pwd)
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
@@ -89,7 +89,6 @@ jobs:
       - name: Assemble X2T converter
         working-directory: X2tConverter
         run: |
-          #set number of cores for build
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
 
           make -f x2tConverter.mk
