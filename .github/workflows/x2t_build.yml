@@ -54,13 +54,13 @@ jobs:
           fetch-depth: 0
           repository: airslateinc/onlyoffice-sdkjs
           ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
-          path: $JFROG_PATH/onlyoffice-sdkjs
+          path: .artifactory/onlyoffice-sdkjs
 
       - name: Get Core fonts sources
         uses: actions/checkout@v2
         with:
           repository: airslateinc/onlyoffice-core-fonts
-          path: $JFROG_PATH/onlyoffice-core-fonts
+          path: .artifactory/onlyoffice-core-fonts
 
       # External projects used for Core converter assembly
       # git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
