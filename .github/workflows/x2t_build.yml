@@ -51,7 +51,7 @@ jobs:
       - name: Get SDKJS sources
         uses: actions/checkout@v2
         with:
-          fetch_depth: 0
+          fetch-depth: 0
           repository: airslateinc/onlyoffice-sdkjs
           ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
           path: $JFROG_PATH/onlyoffice-sdkjs
@@ -68,8 +68,8 @@ jobs:
       - name: Creates aliases for external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          ln -sfv $JFROG_DIR/onlyoffice-sdkjs .
-          ln -sfv $JFROG_DIR/onlyoffice-core-fonts .
+          ln -sfv $JFROG_DIR/onlyoffice-sdkjs/ $(PWD)
+          ln -sfv $JFROG_DIR/onlyoffice-core-fonts/ $(PWD)
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
