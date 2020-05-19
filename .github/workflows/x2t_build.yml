@@ -51,17 +51,25 @@ jobs:
       - name: Get SDKJS sources
         uses: actions/checkout@v2
         with:
+          fetch_depth: 0
           repository: airslateinc/onlyoffice-sdkjs
           ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
-          path: onlyoffice-sdkjs
+          path: $JFROG_PATH/onlyoffice-sdkjs
+
+      - name: Get Core fonts sources
+        uses: actions/checkout@v2
+        with:
+          repository: airslateinc/onlyoffice-core-fonts
+          path: $JFROG_PATH/onlyoffice-core-fonts
 
       # External projects used for Core converter assembly
       # git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
-      - name: Setup external projects
+      # git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
+      - name: Creates aliases for external projects
         run: |
           cd $GITHUB_WORKSPACE/..
-          mv $GITHUB_WORKSPACE/onlyoffice-sdkjs ./
-          git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
+          ln -sfv $JFROG_DIR/onlyoffice-sdkjs .
+          ln -sfv $JFROG_DIR/onlyoffice-core-fonts .
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
