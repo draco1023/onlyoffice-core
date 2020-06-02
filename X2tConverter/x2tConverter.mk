@@ -211,7 +211,7 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
-	
+
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
@@ -247,9 +247,9 @@ sdkjs: ## Build SDKJS from sources
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
-	find $(CORE_FONTS_DIR) -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts ";"
+	find $(CORE_FONTS_DIR)/ -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts/ ";"
 	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/fonts"
-	
+
 	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
@@ -265,7 +265,7 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 
 	# Creates os-specific build dir
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
-	
+
 	# Creates all necessary dirs
 	for required_dir in $(X2T_REQ_DIRS); do \
 		[ -d "$(DEST_DIR)/$${required_dir}" ] || mkdir -p $(DEST_DIR)/$${required_dir}; \
@@ -304,11 +304,12 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	$(MAKE) -f $(THIS_MAKEFILE) allfonts
 
 	# Create zip archive from Converters files
-	cd $(DEST_DIR) && zip -rv $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
+	cd $(DEST_DIR) && zip -r $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
 
 clean: ## Cleanup x2t converter assemblies
-	echo "Clear x2t assembly target dir: $(TARGET)"
+	echo "Clear x2t assembly target dir: $(TARGET)_$(SDKJS_TAG)"
 	rm -rf $(SDKJS_DIR)/deploy
+	echo "Clear sdkjs build target dir: $(SDKJS_DIR)/deploy/sdkjs/"
 	rm -rf ./build/$(TARGET)_$(SDKJS_TAG)
 
 ---: ## --------------------------------------------------------------
