@@ -11,7 +11,6 @@ on:
       - 'as_master'
 
 jobs:
-
   build:
     name: ${{ matrix.osname }}
     runs-on: ${{ matrix.os }}
@@ -99,7 +98,7 @@ jobs:
         run: |
           zip -rv $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
 
-      - name: Save convereter build as workflow artifacts
+      - name: Save converter build as workflow artifacts
         uses: actions/upload-artifact@v2
         with:
           name: x2t_converters_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
@@ -109,10 +108,21 @@ jobs:
         working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
         run: |
           jfrog rt dl --flat \
-            onlyoffice-core/core/test_documents/sample_fillable_fields.docx \
+            onlyoffice-core/core/test_documents/all_fields_sample/sample_fillable_fields.docx \
             $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
 
           ./x2t ./params.xml
+
+      - name: Unit Tests
+        run: |
+          jfrog rt dl --flat \
+            onlyoffice-core/core/test_documents/all_fields_sample/sample_fillable_fields_expected.* \
+            $X2T_BUILD_DIR/sample_fillable_fields_expected.*
+
+          jfrog rt dl --flat --recursive \
+            onlyoffice-core/core/pdfcompare/* $JFROG_DIR/
+
+          .ci/run_x2t_test.sh ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Store converter run result for failed test
         uses: actions/upload-artifact@v2
@@ -128,4 +138,3 @@ jobs:
             $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip \
             onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
           echo "::warning file=Download_URL::https://artifactory.infrateam.xyz/onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip"
-
