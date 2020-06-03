@@ -3,6 +3,8 @@ name: X2T
 
 on:
   push:
+    branches:
+      - '*'
     tags:
       - 'airslate/*'
     path-ignore:
