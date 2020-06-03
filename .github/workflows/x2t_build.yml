@@ -4,7 +4,8 @@ name: X2T
 on:
   push:
     path-ignore:
-      - 'README.md'
+      - '**.md'
+      - '**.txt'
 
   pull_request:
     branches:
@@ -60,9 +61,6 @@ jobs:
           repository: airslateinc/onlyoffice-core-fonts
           path: .artifactory/onlyoffice-core-fonts
 
-      # External projects used for Core converter assembly
-      # git clone -b ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }} https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-sdkjs.git
-      # git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/airslateinc/onlyoffice-core-fonts.git
       - name: Creates aliases for external projects
         run: |
           cd $GITHUB_WORKSPACE/..
@@ -88,7 +86,6 @@ jobs:
         working-directory: X2tConverter
         run: |
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-
           make -f x2tConverter.mk
           make -f x2tConverter.mk build
 
@@ -176,8 +173,6 @@ jobs:
           jfrog rt dl --flat --recursive \
             onlyoffice-core/core/pdfcompare/* $JFROG_DIR/
 
-          ls -lah $JFROG_DIR
-
       - name: Setup GhostScript (macOS)
         if: matrix.osname == 'macOS'
         run: brew install ghostscript
@@ -191,9 +186,7 @@ jobs:
         run: ./x2t ./params.xml
 
       - name: Unit Tests
-        run: |
-          export PATH="$PATH:$JFROG_DIR"
-          .ci/run_x2t_test.sh ${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+        run: .ci/run_x2t_test.sh ${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
 
       - name: Store converted results
         uses: actions/upload-artifact@v2
