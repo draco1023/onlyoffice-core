@@ -42,6 +42,13 @@ CWD := $(shell cd $(shell dirname $(THIS_MAKEFILE)); pwd)
 
 TARGET := $(PLATFORM)_$(ARCH)
 
+# Use version of OnlyOffice Core from version file as defaults for Core builds
+ifneq ("$(wildcard ./CORE_VERSION)","")
+CORE_VERSION ?= $(shell cat ./CORE_VERSION | head -n 1)
+else
+CORE_VERSION ?= 0.0.0
+endif
+
 # http://patorjk.com/software/taag/#p=display&f=Bloody&t=Core%20build
 define LOGO
                                                                           
@@ -83,10 +90,7 @@ BUILDS += ./X2tConverter/build/Qt/core_build/$(TARGET)
 # Artifactory max file size is 1000 Mb
 ZIP_SPLIT    := -s 500m
 ZIP_EXCLUDES := -x ".*" -x "__MACOSX" -x "*.DS_Store"
-DEST_DIR := ./.artifactory/$(TARGET)
-
-# If not specified Version - use `latest` label
-VERSION := latest
+DEST_DIR := ./.artifactory/$(TARGET)/$(CORE_VERSION)
 
 .DEFAULT_GOAL = help
 .PHONY: help zip vendors libs
@@ -96,15 +100,15 @@ all: vendors libs ## Collect all Core and Vendors build artifacts as ZIP archive
 
 vendors: ## Collect Core `Common/3dParty` build artifacts as ZIP
 	$(info $@: Creating ZIP archive for $(TARGET) -> $(DEST_DIR))
-	# 	Creates os-specific destination dir
+	# 	Creates OS-specific destination dir
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
 	zip -rv $(ZIP_SPLIT) $(DEST_DIR)/common_3dparty.zip $(BUILDS_VENDORS) $(ZIP_EXCLUDES)
 
 libs: ## Collect all Core component builds artifacts as ZIP
-	$(info $@: Creating ZIP archive for $(TARGET) -> $(DEST_DIR)/$(VERSION))
+	$(info $@: Creating ZIP archive for $(TARGET) -> $(DEST_DIR))
 	# 	Creates os-specific destination dir
-	[ -d "$(DEST_DIR)/$(VERSION)" ] || mkdir -p $(DEST_DIR)/$(VERSION)
-	zip -rv $(DEST_DIR)/$(VERSION)/core_builds.zip $(BUILDS) $(ZIP_EXCLUDES)
+	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
+	zip -rv $(DEST_DIR)/core_builds.zip $(BUILDS) $(ZIP_EXCLUDES)
 
 .logo:
 	echo "$${LOGO}"
@@ -112,13 +116,14 @@ libs: ## Collect all Core component builds artifacts as ZIP
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
 	echo "This Makefile collect OnlyOffice compiled artifacts as ZIP"
+	echo CORE_VERSION: $(CORE_VERSION)
 	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target>"
 	echo ''
 	echo "Example:"
 	echo "  make -f $(THIS_MAKEFILE) all"
-	echo "  make -f $(THIS_MAKEFILE) libs VERSION=v5.4.0.0"
+	echo "  make -f $(THIS_MAKEFILE) libs"
 	echo ''
 	echo "Targets:"
 	echo ''

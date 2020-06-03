@@ -43,16 +43,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Get SDKJS version
-        id: sdkjs-version-tag
-        run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
+      - name: Get SDKJS/Core versions
+        id: version-tag
+        run: |
+          echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
+          echo "::set-output name=core_tag::$(cat ./CORE_VERSION | head -n 1)"
 
       - name: Get SDKJS sources
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
           repository: airslateinc/onlyoffice-sdkjs
-          ref: ${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+          ref: ${{ steps.version-tag.outputs.sdkjs_tag }}
           path: .artifactory/onlyoffice-sdkjs
 
       - name: Get Core fonts sources
@@ -76,7 +78,7 @@ jobs:
       - name: Fetch build artifacts
         run: |
           jfrog rt dl --flat --recursive \
-            onlyoffice-core/core/${{ matrix.build_target }}/* $JFROG_DIR/
+            onlyoffice-core/core/${{ matrix.build_target }}/${{ steps.version-tag.outputs.core_tag }}/* $JFROG_DIR/
 
           zip -F $JFROG_DIR/common_3dparty.zip --out $JFROG_DIR/common_builds.zip
           unzip -u $JFROG_DIR/common_builds.zip -d ${{ github.workspace }}/
@@ -90,23 +92,23 @@ jobs:
           make -f x2tConverter.mk build
 
       - name: Zip OnlyOffice Converter build
-        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}
         run: |
-          zip -rv $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
+          zip -rv $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}.zip . $ZIP_EXCLUDES
 
       - name: Attach OnlyOffice Converter build to workflow artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: x2t_converters_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
-          path: X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
+          name: x2t_converters_${{ steps.version-tag.outputs.sdkjs_tag }}.zip
+          path: X2tConverter/build/x2t_${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}.zip
 
       - name: Store OnlyOffice Converter builds to Artifactory (only for 'converter/*' branches)
         if: startsWith(github.ref, 'refs/heads/converter/')
         run: |
           jfrog rt u \
-            $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip \
-            onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
-          echo "::warning file=Download_URL::https://artifactory.infrateam.xyz/onlyoffice-core/converter-dev/${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/x2t_${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip"
+            $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}.zip \
+            onlyoffice-core/converter-dev/${{ steps.version-tag.outputs.sdkjs_tag }}/
+          echo "::warning file=Download_URL::https://artifactory.infrateam.xyz/onlyoffice-core/converter-dev/${{ steps.version-tag.outputs.sdkjs_tag }}/x2t_${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}.zip"
 
   test:
     needs: build
@@ -142,7 +144,7 @@ jobs:
           fetch-depth: 1
 
       - name: Get SDKJS version
-        id: sdkjs-version-tag
+        id: version-tag
         run: echo "::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)"
 
       - name: Setup JFrog CLI
@@ -153,17 +155,17 @@ jobs:
       - name: Download OnlyOffice Converter
         uses: actions/download-artifact@v2
         with:
-          name: x2t_converters_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}.zip
+          name: x2t_converters_${{ steps.version-tag.outputs.sdkjs_tag }}.zip
           path: X2tConverter/build
 
       - name: Setup Tests
         run: |
-          unzip -u $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}* -d $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/
+          unzip -u $X2T_BUILD_DIR/x2t_${{ matrix.build_target }}* -d $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}/
 
           # copy test docx
           jfrog rt dl --flat \
             onlyoffice-core/core/test_documents/all_fields_sample/sample_fillable_fields.docx \
-            $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/source/input.docx
+            $X2T_BUILD_DIR/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}/source/input.docx
 
           # copy expected results (json fields and pdf)
           jfrog rt dl --flat --recursive \
@@ -182,16 +184,16 @@ jobs:
         run: sudo ln -sfv $JFROG_DIR/libgs.so /usr/lib/libgs.so
 
       - name: Run Convertion Tests (DOCX -> PDF)
-        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+        working-directory: X2tConverter/build/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}
         run: ./x2t ./params.xml
 
       - name: Unit Tests
-        run: .ci/run_x2t_test.sh ${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}
+        run: .ci/run_x2t_test.sh ${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}
 
       - name: Store converted results
         uses: actions/upload-artifact@v2
         if: always()
         with:
           name: 'output_${{ matrix.build_target }}.zip'
-          path: X2tConverter/build/${{ matrix.build_target }}_${{ steps.sdkjs-version-tag.outputs.sdkjs_tag }}/result
+          path: X2tConverter/build/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}/result
 
