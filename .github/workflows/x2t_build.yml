@@ -211,7 +211,9 @@ jobs:
 
       - name: Get the release version
         id: get-version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/airslate/}
+        run: |
+          echo ::set-output name=version::${GITHUB_REF#refs/tags/airslate/}
+          echo ::set-output name=sdkjs_tag::$(cat ./X2tConverter/SDKJS_VERSION | head -n 1)
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
@@ -221,7 +223,7 @@ jobs:
       - name: Download OnlyOffice Converter
         uses: actions/download-artifact@v2
         with:
-          name: x2t_converters_${{ steps.version-tag.outputs.sdkjs_tag }}.zip
+          name: x2t_converters_${{ steps.get-version.outputs.sdkjs_tag }}.zip
           path: X2tConverter/build
 
       - name: Create Release
