@@ -3,14 +3,9 @@ name: X2T
 
 on:
   push:
-    branches:
-      - '*'
-    tags:
-      - 'airslate/*'
     path-ignore:
       - '**.md'
       - '**.txt'
-
   pull_request:
     branches:
       - 'as_master'
@@ -202,7 +197,7 @@ jobs:
           path: X2tConverter/build/${{ matrix.build_target }}_${{ steps.version-tag.outputs.sdkjs_tag }}/result
 
   release:
-    if: startsWith(github.ref, 'refs/tags/airslate/')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/airslate/')
     needs: [ build, test ]
     runs-on: ubuntu-latest
     env:
