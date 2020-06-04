@@ -94,19 +94,24 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
-SDKJS_DIR     := $(abspath $(CORE_DIR)/../onlyoffice-sdkjs)
+SDKJS_DIR     := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-sdkjs)
+SDK_BUILD_NUMBER := 0
+SDK_PRODUCT_VERSION := 0
 
 # Application Metadata
+ifneq ("$(wildcard $(SDKJS_DIR)/.git/config)","")
 SDK_PRODUCT_VERSION := "$(shell cd $(SDKJS_DIR) && git describe --abbrev=0 --tags)"
 SDK_BUILD_NUMBER    := "$(shell cd $(SDKJS_DIR) && git rev-parse --short HEAD)"
+endif
 
 SDKJS_VENDOR  = https://raw.githubusercontent.com/ONLYOFFICE/web-apps/master/vendor
 SDKJS_JQUERY  = jquery/jquery.min.js
 SDKJS_XREGEXP = xregexp/xregexp-all-min.js
+SDKJS_PARAMS  = --force --base build --gruntfile build/Gruntfile.js
 
 # Core fonts SRC repository url
 CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
-CORE_FONTS_DIR := $(abspath $(CORE_DIR)/../onlyoffice-core-fonts)
+CORE_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-core-fonts)
 
 # X2T Converter requred dirs
 X2T_REQ_DIRS += result
@@ -206,7 +211,7 @@ core_fonts: ## Download Core Fonts from OnlyOffice git repository
 
 sdkjs: ## Build SDKJS from sources
 	echo "$@: Building SDKJS from $(SDKJS_SRC_URL)"
-	
+
 	# Clone repository if it not exists
 	[ -d $(SDKJS_DIR) ] \
 		&& echo "$@: Use existing SDKJS project -> $(SDKJS_DIR)" \
@@ -226,7 +231,7 @@ sdkjs: ## Build SDKJS from sources
 	[ ! -d $(SDKJS_DIR)/deploy ] || rm -rf $(SDKJS_DIR)/deploy
 
 	# # Build sdkjs
-	echo "$@: Building sdkjs from sources..."
+	echo "$@: Building sdkjs $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER) from sources..."
 	cd $(SDKJS_DIR)/build && npm install --prefix $(SDKJS_DIR)/build
 	cd $(SDKJS_DIR) \
 		&& COMPANY_NAME=airSlate \
@@ -236,15 +241,15 @@ sdkjs: ## Build SDKJS from sources
 		PUBLISHER_NAME="airSlate Inc." \
 		APP_COPYRIGHT="Copyright (C) airSlate Inc. 2019-$(shell date +%Y). All rights reserved" \
 		PUBLISHER_URL="https://airslate.com" \
-		grunt --force --level=WHITESPACE_ONLY --formatting=PRETTY_PRINT --base build --gruntfile build/Gruntfile.js
+		grunt $(SDKJS_PARAMS)
 	echo "$(SDKJS_TAG) (build: $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER))" > $(SDKJS_DIR)/deploy/sdkjs/.VERSION
 	echo "$@: Build successfully $(SDKJS_TAG) $(SDK_PRODUCT_VERSION).$(SDK_BUILD_NUMBER)"
 
 allfonts: core_fonts ## Generate Allfonts.js for converter
 	# Copy all truetype fonts from Core fonts to x2t fonts directory without nested folders structure
-	find $(CORE_FONTS_DIR) -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts ";"
+	find $(CORE_FONTS_DIR)/ -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts/ ";"
 	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/fonts"
-	
+
 	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
@@ -260,7 +265,7 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 
 	# Creates os-specific build dir
 	[ -d "$(DEST_DIR)" ] || mkdir -p $(DEST_DIR)
-	
+
 	# Creates all necessary dirs
 	for required_dir in $(X2T_REQ_DIRS); do \
 		[ -d "$(DEST_DIR)/$${required_dir}" ] || mkdir -p $(DEST_DIR)/$${required_dir}; \
@@ -299,11 +304,12 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	$(MAKE) -f $(THIS_MAKEFILE) allfonts
 
 	# Create zip archive from Converters files
-	cd $(DEST_DIR) && zip -rv $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
+	cd $(DEST_DIR) && zip -r $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
 
 clean: ## Cleanup x2t converter assemblies
-	echo "Clear x2t assembly target dir: $(TARGET)"
+	echo "Clear x2t assembly target dir: $(TARGET)_$(SDKJS_TAG)"
 	rm -rf $(SDKJS_DIR)/deploy
+	echo "Clear sdkjs build target dir: $(SDKJS_DIR)/deploy/sdkjs/"
 	rm -rf ./build/$(TARGET)_$(SDKJS_TAG)
 
 ---: ## --------------------------------------------------------------

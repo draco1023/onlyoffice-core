@@ -15,7 +15,7 @@
 
 - Compile OnlyOffice Core (Ubuntu - GCC 8 / macOs - Clang)
 - Go to X2T converter directory: `cd ./X2tConverter`
-- Run makefile: `make -f x2tConverter.mk build sdkjs-branch={sdkjs-branch-name}`
+- Run makefile: `make -f x2tConverter.mk build`
 
 ### Run x2t converter
 
@@ -24,7 +24,7 @@
 - Run: `./x2t ./params.xml`
 - See result PDF into `output` folder
 
-[docx_demo_link]: https://artifactory.infrateam.xyz/onlyoffice-core/core/test_documents/docxFields.docx
+[docx_demo_link]: https://artifactory.infrateam.xyz/onlyoffice-core/core/all_fields_sample/sample_fillable_fields.docx
 
 ---
 

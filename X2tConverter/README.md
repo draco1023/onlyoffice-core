@@ -3,7 +3,7 @@
 Для сборки onlyoffice конвертера (onlyoffice-worker) с различными версиями SDKJS нужно выполнить следующие шаги:
 
 ```bash
-git clone --depth 1 -b as_master https://github.com/airslateinc/onlyoffice-core.git
+git clone --depth 1 -b as_master git@github.com:airslateinc/onlyoffice-core.git
 ```
 
 Создать свою ветку от `as_master` и изменить название ветки SDKJS в файле `SDKJS_VERSION` с которой необходимо собрать конвертер.
