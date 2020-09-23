@@ -33,6 +33,7 @@
 
 #include "../../DesktopEditor/graphics/pro/Fonts.h"
 #include "../../DesktopEditor/graphics/pro/Graphics.h"
+#include "../../DesktopEditor/fontengine/ApplicationFontsWorker.h"
 
 #include "../../PdfReader/PdfReader.h"
 #include "../../DjVuFile/DjVu.h"
@@ -44,6 +45,13 @@
 #include "../../DesktopEditor/common/Directory.h"
 
 #include "../include/ASCSVGWriter.h"
+#include "../../Common/FileDownloader/FileDownloader.h"
+
+void Download_OnComplete(int error)
+{
+    int y = error;
+    return;
+}
 
 //#define RASTER_TEST
 //#define METAFILE_TEST
@@ -52,9 +60,17 @@
 //#define TO_PDF
 //#define TO_HTML_RENDERER
 //#define ONLY_TEXT
+//#define DOWNLOADER_TEST
 
 int main(int argc, char *argv[])
 {
+#ifdef DOWNLOADER_TEST
+    CFileDownloader oDownloader(L"https://download.onlyoffice.com/assets/fb/fb_icon_325x325.jpg", false);
+    oDownloader.SetFilePath(L"D:\\111.jpg");
+    oDownloader.SetEvent_OnComplete(Download_OnComplete);
+    oDownloader.DownloadSync();
+#endif
+
 #ifdef RASTER_TEST
     CBgraFrame oFrame;
     oFrame.OpenFile(L"D:\\22.png");
@@ -62,17 +78,15 @@ int main(int argc, char *argv[])
     return 0;
 #endif
 
-    NSFonts::IApplicationFonts* pFonts = NSFonts::NSApplication::Create();
-    if (true)
-    {
-        pFonts->Initialize();
-    }
-    else
-    {
-        std::vector<std::wstring> arFiles = pFonts->GetSetupFontFiles();
-        NSDirectory::GetFiles2(L"D:\\GIT\\core-fonts", arFiles, true);
-        pFonts->InitializeFromArrayFiles(arFiles);
-    }
+    CApplicationFontsWorker oWorker;
+    oWorker.m_sDirectory = NSFile::GetProcessDirectory() + L"/fonts_cache";
+    //oWorker.m_arAdditionalFolders.push_back(L"D:\\GIT\\core-fonts");
+    oWorker.m_bIsNeedThumbnails = false;
+
+    if (!NSDirectory::Exists(oWorker.m_sDirectory))
+        NSDirectory::CreateDirectory(oWorker.m_sDirectory);
+
+    NSFonts::IApplicationFonts* pFonts = oWorker.Check();
 
 #ifdef METAFILE_TEST
 

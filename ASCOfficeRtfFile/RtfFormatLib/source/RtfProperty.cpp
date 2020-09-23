@@ -38,6 +38,7 @@
 #include "../../../Common/DocxFormat/Source/DocxFormat/App.h"
 #include "../../../Common/DocxFormat/Source/DocxFormat/Core.h"
 #include "../../../DesktopEditor/common/SystemUtils.h"
+#include "../../../Common/MS-LCID.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -260,13 +261,13 @@ std::wstring RtfFont::RenderToOOX(RenderParameter oRenderParameter)
 					break;
 			}
 			sResult += L"<w:rFonts w:ascii=\"";
-			sResult += sFontName;
+			sResult += XmlUtils::EncodeXmlString( sFontName, true );
 			sResult += L"\" w:eastAsia=\"";
-			sResult += sFontName;
+			sResult += XmlUtils::EncodeXmlString( sFontName, true );
 			sResult += L"\" w:hAnsi=\"";
-			sResult += sFontName;
+			sResult += XmlUtils::EncodeXmlString( sFontName, true );
 			sResult += L"\" w:cs=\"";
-			sResult += sFontName;
+			sResult += XmlUtils::EncodeXmlString( sFontName, true );
 			sResult += L"\"";
 			sResult += sHint;
 			sResult += L"/>";
@@ -998,22 +999,8 @@ std::wstring RtfCharProperty::RenderToOOX(RenderParameter oRenderParameter)
 			if (ccBuf > 0) str_lang_asian.append(buf);
 		}
 #else
-        for (size_t i = 0; m_nLanguage != PROP_DEF  && i < 136; i++)
-        {
-            if (LCID_ms_convert[i].LCID_int == m_nLanguage)
-            {
-                str_lang = LCID_ms_convert[i].LCID_string;
-                break;
-            }
-        }
-        for (size_t i = 0; m_nLanguageAsian != PROP_DEF && i < 136; i++)
-        {
-            if (LCID_ms_convert[i].LCID_int == m_nLanguageAsian)
-            {
-                str_lang_asian = LCID_ms_convert[i].LCID_string;
-                break;
-            }
-        }
+		str_lang		= (m_nLanguage != PROP_DEF)			? msLCID2wstring(m_nLanguage)		: L"";
+		str_lang_asian	= (m_nLanguageAsian != PROP_DEF)	? msLCID2wstring(m_nLanguageAsian)	: L"";
 #endif
         if (false == str_lang.empty() || false == str_lang_asian.empty() )
 		{
@@ -2961,8 +2948,14 @@ std::wstring RtfTableProperty::RenderToOOX(RenderParameter oRenderParameter)
         sDefCellMargins += L"<w:bottom w:w=\"" + std::to_wstring(m_nDefCellMarBottom) + L"\" w:type=\"dxa\"/>";
 	if( PROP_DEF != m_nDefCellMarLeft && 3 == m_eDefCellMarLeftUnit )
         sDefCellMargins += L"<w:left w:w=\"" + std::to_wstring(m_nDefCellMarLeft) + L"\" w:type=\"dxa\"/>";
+	else
+        sDefCellMargins += L"<w:left w:w=\"0\" w:type=\"dxa\"/>";
+
 	if( PROP_DEF != m_nDefCellMarRight && 3 == m_eDefCellMarRightUnit )
         sDefCellMargins += L"<w:right w:w=\"" + std::to_wstring(m_nDefCellMarRight) + L"\" w:type=\"dxa\"/>";
+	else
+        sDefCellMargins += L"<w:right w:w=\"0\" w:type=\"dxa\"/>";
+
 	if( PROP_DEF != m_nDefCellMarTop && 3 == m_eDefCellMarTopUnit )
         sDefCellMargins += L"<w:top w:w=\"" + std::to_wstring(m_nDefCellMarTop) + L"\" w:type=\"dxa\"/>";
 	
@@ -3124,7 +3117,7 @@ std::wstring RtfRowProperty::RenderToOOX(RenderParameter oRenderParameter)
 	{
 		switch( m_eWidthEndInvCellUnit )
 		{
-        case mu_Percent:	sResult += L"<w:wAfter w:type=\"pct\" w:w=\"" + std::to_wstring(m_nWidthEndInvCell) + L"%\"/>"; break;
+        case mu_Percent:	sResult += L"<w:wAfter w:type=\"pct\" w:w=\"" + std::to_wstring(m_nWidthEndInvCell) + L"\"/>"; break;
         case mu_Twips:		sResult += L"<w:wAfter w:type=\"dxa\" w:w=\"" + std::to_wstring(m_nWidthEndInvCell) + L"\"/>";	break;
 		default:
 			break;

@@ -512,10 +512,22 @@ std::wstring toStdWString(std::string ansi_string, const unsigned int code_page)
 		NSUnicodeConverter::CUnicodeConverter oConverter;
 		return oConverter.toUnicode(ansi_string, sCodePage.c_str());
 	}
-	else
+	else if (code_page != 0)
 	{
 		NSUnicodeConverter::CUnicodeConverter oConverter;
 		return oConverter.toUnicode(ansi_string, code_page);
+	}
+	else
+	{
+		std::locale loc("");
+		std::ctype<wchar_t> const &facet = std::use_facet<std::ctype<wchar_t> >(loc);
+
+		std::wstring result;
+		result.resize(ansi_string.size());
+	    
+		facet.widen(ansi_string.c_str(), ansi_string.c_str() + ansi_string.size(), &result[0]);
+
+		return result;
 	}
 }
 std::wstring	toStdWString(char* ansi, int size, const unsigned int code_page)
@@ -530,12 +542,12 @@ std::wstring	toStdWString(char* ansi, int size, const unsigned int code_page)
 	if (!sCodePage.empty())
 	{
 		NSUnicodeConverter::CUnicodeConverter oConverter;
-		return oConverter.toUnicode(ansi, size, sCodePage.c_str());
+        return oConverter.toUnicode(ansi, (unsigned int)size, sCodePage.c_str());
 	}
 	else
 	{
 		NSUnicodeConverter::CUnicodeConverter oConverter;
-		return oConverter.toUnicode(ansi, size, code_page);
+        return oConverter.toUnicode(ansi, (unsigned int)size, code_page);
 	}
 }
 std::string toStdString(std::wstring wide_string, const unsigned int code_page)
@@ -601,8 +613,8 @@ const std::wstring xti_indexes2sheet_name(const short tabFirst, const short tabL
 	
 	if(!boost::regex_search(sheet_first.begin(), sheet_first.end(), correct_sheet_name))
 	{	
-		if(boost::regex_search(sheet_first.begin(), sheet_first.end(), test_sheet_name))
-		{	
+		if(boost::regex_search(sheet_first.begin(), sheet_first.end(), test_sheet_name) || (!prefix.empty() && prefix[0] == L'[')) // 5558608.xls
+		{
 			sheet_first = boost::algorithm::replace_all_copy(sheet_first, L"'", L"''"); 
 			sheet_first = std::wstring(L"'") + sheet_first + std::wstring(L"'");
 		}

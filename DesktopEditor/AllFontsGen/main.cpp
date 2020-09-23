@@ -392,6 +392,7 @@ namespace NSCommon
         {
             NSFonts::IFontManager* pManager = applicationFonts->GenerateFontManager();
             NSFonts::IFontsCache* pCache = NSFonts::NSFontCache::Create();
+            pCache->SetCacheSize(3);
             pCache->SetStreams(applicationFonts->GetStreams());
             pManager->SetOwnerCache(pCache);
 
@@ -426,6 +427,9 @@ namespace NSCommon
 
                 pRenderer->put_Width(lWidthPix * 25.4 / dDpi);
                 pRenderer->put_Height(lHeightPix * 25.4 / dDpi);
+
+                bool isUseMapForStreams = false;
+                std::map<std::wstring, bool> mapUsedFiles;
 
                 for (int index = 0; index < nCountFonts; ++index)
                 {
@@ -476,6 +480,9 @@ namespace NSCommon
 
                         if (NULL != pInfoCur)
                         {
+                            if (isUseMapForStreams)
+                                mapUsedFiles.insert(std::pair<std::wstring, bool>(pInfoCur->m_wsFontPath, true));
+
                             pManager->LoadFontFromFile(pInfoCur->m_wsFontPath, 0, 14, dDpi, dDpi);
                         }
                         pRenderer->put_FontPath(pInfoCur->m_wsFontPath);
@@ -503,6 +510,9 @@ namespace NSCommon
 
                             if (NULL != pInfoCur)
                             {
+                                if (isUseMapForStreams)
+                                    mapUsedFiles.insert(std::pair<std::wstring, bool>(pInfoCur->m_wsFontPath, true));
+
                                 pManager->LoadFontFromFile(pInfoCur->m_wsFontPath, 0, 14, dDpi, dDpi);
                             }
                             pRenderer->put_FontPath(pInfoCur->m_wsFontPath);
@@ -514,6 +524,11 @@ namespace NSCommon
                     pRenderer->put_FontSize(14);
 
                     pRenderer->CommandDrawText(pPair->second.m_sName, 5, 25.4 * (index * lH1_px + lH1_px) / dDpi - 2, 0, 0);
+
+                    if (isUseMapForStreams)
+                        applicationFonts->GetStreams()->CheckStreams(mapUsedFiles);
+                    else
+                        applicationFonts->GetStreams()->Clear();
                 }
 
                 std::wstring strThumbnailPath = strFolderThumbnails + L"/fonts_thumbnail";
@@ -1210,6 +1225,22 @@ std::wstring CorrectDir(const std::wstring& sDir)
     return sDir.substr(pos1, pos2 - pos1);
 }
 
+std::wstring CorrectValue(const std::wstring& value)
+{
+    if (value.empty())
+        return L"";
+
+    const wchar_t* data = value.c_str();
+
+    std::wstring::size_type pos1 = (data[0] == '\"') ? 1 : 0;
+    std::wstring::size_type pos2 = value.length();
+
+    if (data[pos2 - 1] == '\"')
+        --pos2;
+
+    return value.substr(pos1, pos2 - pos1);
+}
+
 #ifdef WIN32
 int wmain(int argc, wchar_t** argv)
 #else
@@ -1252,6 +1283,7 @@ int main(int argc, char** argv)
 
             if (sKey == L"--use-system")
             {
+                sValue = CorrectValue(sValue);
                 if (sValue == L"1" || sValue == L"true")
                     bIsUseSystemFonts = true;
             }
@@ -1283,7 +1315,7 @@ int main(int argc, char** argv)
                     {
                         if (srcPrev != src)
                         {
-                            arFontsDirs.push_back(std::wstring(srcPrev, src - srcPrev));
+                            arFontsDirs.push_back(CorrectDir(std::wstring(srcPrev, src - srcPrev)));
                         }
                         src++;
                         srcPrev = src;
@@ -1294,7 +1326,7 @@ int main(int argc, char** argv)
 
                 if (src > srcPrev)
                 {
-                    arFontsDirs.push_back(std::wstring(srcPrev, src - srcPrev));
+                    arFontsDirs.push_back(CorrectDir(std::wstring(srcPrev, src - srcPrev)));
                 }
             }
             else if (sKey == L"--output-web")

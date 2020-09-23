@@ -1572,6 +1572,7 @@ bool CDrawingConverter::ParceObject(const std::wstring& strXml, std::wstring** p
                             L"line"      == strNameP ||
                             L"background"== strNameP ||
                             L"roundrect" == strNameP ||
+                            L"image"	 == strNameP ||
                             L"polyline"  == strNameP)
 						{
 							if(NULL == pElem)
@@ -1809,7 +1810,13 @@ void CDrawingConverter::doc_LoadShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::C
 		pPPTShape->SetShapeType((PPTShapes::ShapeType)3);
 		pPPTShape->ReCalculate();
 	}
-    else if (L"v:line" == strNameNode)
+    else if (L"v:image" == strNameNode)
+	{
+		pPPTShape = new CPPTShape();
+		pPPTShape->SetShapeType((PPTShapes::ShapeType)75);
+		pPPTShape->ReCalculate();
+	}
+	else if (L"v:line" == strNameNode)
 	{
 		pPPTShape = new CPPTShape();
 		pPPTShape->SetShapeType((PPTShapes::ShapeType)20);
@@ -1952,6 +1959,12 @@ void CDrawingConverter::doc_LoadShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::C
 				base_shape_type->SetToDublicate(pPPTShape);
 
 				pPPTShape->m_eType = ppt_shape_type->m_eType;
+			}
+			else if (std::wstring::npos != strType.find(L"t75"))
+			{
+				pPPTShape = new CPPTShape();
+				pPPTShape->SetShapeType((PPTShapes::ShapeType)75);
+				pPPTShape->m_eType = PPTShapes::sptCFrame;
 			}
 		}
 		
@@ -2689,7 +2702,11 @@ void CDrawingConverter::doc_LoadShape(PPTX::Logic::SpTreeElem *elem, XmlUtils::C
 			XmlUtils::CXmlNode oNodeTextBox;
 			
 			std::wstring sTextboxStyle;
-			if (oNodeShape.GetNode(L"v:textbox", oNodeTextBox))
+
+			bool			res_text = oNodeShape.GetNode(L"v:textbox", oNodeTextBox);
+			if (!res_text)	res_text = oNodeShape.GetNode(L"w:textbox", oNodeTextBox); // libre 4.0 эту хрень делает
+			
+			if (res_text)
 			{
 				XmlUtils::CXmlNode oNodeContent;
 				if (oNodeTextBox.GetNode(L"w:txbxContent", oNodeContent))
@@ -4896,19 +4913,26 @@ HRESULT CDrawingConverter::SaveObject(LONG lStart, LONG lLength, const std::wstr
 
     //strMainProps += L"<wp:cNvGraphicFramePr/>");
 
-	m_pReader->Seek(lStart);
-	
+	PPTX::Logic::SpTreeElem oElem;
 	++m_nCurrentIndexObject;
+	
+	m_pReader->Seek(lStart);
 
 	BYTE typeRec1 = m_pReader->GetUChar(); // must be 0;
 	LONG _e = m_pReader->GetPos() + m_pReader->GetLong() + 4;
-
-	m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
-	PPTX::Logic::SpTreeElem oElem;
-
+	
 	m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
+	
+	try
+	{
+		m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
 
-	oElem.fromPPTY(m_pReader);
+		oElem.fromPPTY(m_pReader);
+	}
+	catch(...)
+	{
+		//todooo в отдельный лог
+	}
 	bool bOle = false;
 	if (oElem.is<PPTX::Logic::Pic>())
 	{
@@ -5057,19 +5081,26 @@ HRESULT CDrawingConverter::SaveObjectEx(LONG lStart, LONG lLength, const std::ws
 	}
 	else
 	{
+		PPTX::Logic::SpTreeElem oElem;
+
 		m_pReader->Seek(lStart);
 
 		m_pReader->m_nDocumentType = nDocType;	
 		++m_nCurrentIndexObject;
-
-		PPTX::Logic::SpTreeElem oElem;
-
+		
 		BYTE typeRec1   = m_pReader->GetUChar();    // must be 0;
 		LONG _e         = m_pReader->GetPos()   + m_pReader->GetLong() + 4;
+		
+		try
+		{
+			m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
 
-		m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
-
-		oElem.fromPPTY(m_pReader);
+			oElem.fromPPTY(m_pReader);			
+		}
+		catch(...)
+		{
+			//todooo
+		}
 
 		bool bOle = false;
 		if (oElem.is<PPTX::Logic::Pic>())
@@ -5098,10 +5129,8 @@ HRESULT CDrawingConverter::SaveObjectEx(LONG lStart, LONG lLength, const std::ws
 		--m_nCurrentIndexObject;
 
 		SaveObjectExWriterRelease(oXmlWriter);
-
-
 		sXml = oXmlWriter.GetXmlString();
-
+	
 		m_pReader->Seek(_e);
 	}
 	return S_OK;
@@ -5113,19 +5142,24 @@ std::wstring CDrawingConverter::SaveObjectBackground(LONG lStart, LONG lLength)
 	m_pReader->Seek(lStart);
 
 	++m_nCurrentIndexObject;
-
 	BYTE typeRec1 = m_pReader->GetUChar(); // must be 0;
 	LONG _e = m_pReader->GetPos() + m_pReader->GetLong() + 4;
-
-	m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
-	PPTX::Logic::SpTreeElem oElem;
-
+	
 	m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_DOCX;
+	
+	PPTX::Logic::SpTreeElem oElem;
+	try
+	{
+		m_pReader->Skip(5); // type record (must be 1) + 4 byte - len record
 
-	oElem.fromPPTY(m_pReader);
+		oElem.fromPPTY(m_pReader);
+	}
+	catch(...)
+	{
+		//todooo
+	}
 
 	m_pReader->m_nDocumentType = XMLWRITER_DOC_TYPE_PPTX;
-
 
 	NSBinPptxRW::CXmlWriter oXmlWriter;
 	SaveObjectExWriterInit(oXmlWriter, XMLWRITER_DOC_TYPE_DOCX);

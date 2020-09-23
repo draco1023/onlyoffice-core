@@ -231,13 +231,11 @@ namespace XmlUtils
 
         double d = 0;
 #if defined (_WIN32) || defined (_WIN64)
-		swscanf_s(string.c_str(), L"%lf", &d);
-#elif defined(_IOS) || defined(__ANDROID__)
-        swscanf(string.c_str(), L"%lf", &d);
+        swscanf_s(string.c_str(), L"%lf", &d);
 #else
-		_stscanf(string.c_str(), L"%lf", &d);
+        swscanf(string.c_str(), L"%lf", &d);
 #endif
-		return d;
+        return d;
 	}
     AVSINLINE static float   GetFloat   (const std::wstring& string)
 	{
@@ -245,13 +243,11 @@ namespace XmlUtils
 
         float f = 0;
 #if defined (_WIN32) || defined (_WIN64)
-		swscanf_s(string.c_str(), L"%f", &f);
-#elif defined(_IOS) || defined(__ANDROID__)
-        swscanf(string.c_str(), L"%f", &f);
+        swscanf_s(string.c_str(), L"%f", &f);
 #else
-        _stscanf(string.c_str(), L"%f", &f);
+        swscanf(string.c_str(), L"%f", &f);
 #endif
-		return f;
+        return f;
 	}
     AVSINLINE static std::wstring BoolToString  (const bool  & value)
 	{
@@ -311,7 +307,7 @@ namespace XmlUtils
 //		CoTaskMemFree(guidString);
 //#else
         std::wstringstream sstream;
-		sstream << boost::wformat(L"%04X%04X-%04X-%04X-%04X-%04X%04X%04X") % Rand() % Rand() % Rand() % ((Rand() & 0x0fff) | 0x4000) % ((Rand() % 0x3fff) + 0x8000) %  Rand() % Rand() % Rand();
+		sstream << boost::wformat(L"%04X%04X-%04X-%04X-%04X-%04X%04X%04X") % (Rand() & 0xff) % (Rand() & 0xff) % (Rand() & 0xff) % ((Rand() & 0x0fff) | 0x4000) % ((Rand() % 0x3fff) + 0x8000) %  (Rand() & 0xff) % (Rand() & 0xff) % (Rand() & 0xff);
         result = sstream.str();
 //#endif	
 		return result;

@@ -225,6 +225,11 @@ struct ods_shared_formula_state
     int moving_type; //1 - col, 2 - row
 };
 
+struct pilot_table_state
+{
+	office_element_ptr elm;
+};
+
 struct table_part_state
 {
 	std::wstring name;
@@ -292,7 +297,7 @@ public:
 		void set_table_rtl(bool Val);
 		void set_table_tab_color(_CP_OPT(odf_types::color) & _color);
         void set_table_dimension(int col, int row);
-		void set_print_range(std::wstring range);
+		void set_table_print_ranges(const std::wstring &ranges);
 		
 		void set_table_protection(bool Val);
 		void set_table_protection_insert_columns(bool Val);
@@ -302,13 +307,16 @@ public:
 		void set_table_protection_unprotected_cells(bool Val);
 		void set_table_protection_protected_cells(bool Val);
 
-    void add_column(office_element_ptr & elm, unsigned int repeated ,office_element_ptr & style);
+    void add_column(office_element_ptr & elm, unsigned int repeated, office_element_ptr & style);
 		void set_column_width(double width);
 		void set_column_optimal_width(bool val);
 		void set_column_hidden(bool val);
 		void set_column_default_cell_style(std::wstring & style_name);
 		
         std::wstring get_column_default_cell_style(int column);
+
+	void add_row_break(int val);
+	void add_column_break(int val);
 
 	void start_group(office_element_ptr & elm);
 	void end_group();
@@ -365,6 +373,9 @@ public:
 		void end_conditional_format();
 	void end_conditional_formats();
 
+	void start_pilot_table(office_element_ptr & elm);
+	void end_pilot_table();
+
 ///////////////////////////////
     void add_hyperlink(const std::wstring & ref,int col, int row, const std::wstring & link, bool bLocation = false);
 	
@@ -403,9 +414,12 @@ public:
 	double defaut_column_width_;
 	double defaut_row_height_;
 
+	std::vector<int> column_breaks_;
+	std::vector<int> row_breaks_;
+
 	void convert_position(oox_table_position & oox_pos, double & x, double & y);
 
-	odf_drawing_context*	drawing_context(){return  &drawing_context_;}
+	odf_drawing_context*	drawing_context(){return  drawing_context_.get();}
 	odf_controls_context*	controls_context(){return  &controls_context_;}
 
 	std::wstring					office_table_name_;
@@ -438,7 +452,7 @@ private:
 	
 	std::wstring row_default_cell_style_name_;
 
-    static int current_table_column_;
+	static int current_table_column_;
     static int current_table_row_;
 
     static int tmp_column_;
@@ -462,13 +476,14 @@ private:
 
 	std::vector<data_validation_state> data_validations_;
 
-	odf_drawing_context		drawing_context_;	
-	odf_controls_context	controls_context_;	
+	pilot_table_state pilot_table_state_;
+
+	odf_drawing_context_ptr		drawing_context_;	
+	odf_controls_context		controls_context_;	
 
 	friend class ods_table_context;
-
 };
-
+typedef shared_ptr<ods_table_state>::Type ods_table_state_ptr;
 
 }
 }

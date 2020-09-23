@@ -19,7 +19,7 @@ CORE_ROOT_DIR = $$PWD/../../..
 PWD_ROOT_DIR = $$PWD
 include(../../../Common/base.pri)
 
-LIBS += -L$$CORE_BUILDS_LIBRARIES_PATH -lUnicodeConverter -lkernel
+ADD_DEPENDENCY(UnicodeConverter, kernel)
 
 DEFINES += \
     _QT \
@@ -31,6 +31,8 @@ DEFINES += \
     MNG_ACCESS_CHUNKS \
     MNG_STORE_CHUNKS\
     MNG_ERROR_TELLTALE
+
+DEFINES += FT_SUPPORT_UTF8_IN_NAMES
 
 core_linux {
     DEFINES += \
@@ -467,3 +469,8 @@ SOURCES += \
     $$LIB_GRAPHICS_PRI_PATH/raster/JBig2/source/LeptonLib/sel1.cpp \
     $$LIB_GRAPHICS_PRI_PATH/raster/JBig2/source/LeptonLib/sel2.cpp \
     $$LIB_GRAPHICS_PRI_PATH/raster/JBig2/source/LeptonLib/skew.cpp
+
+core_ios {
+OBJECTIVE_SOURCES += ./../../fontengine/ApplicationFonts_ios.mm
+LIBS += -framework Foundation
+}
