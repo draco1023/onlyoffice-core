@@ -57,8 +57,10 @@ SDKJS_VERSION ?= ovm_fillable_fields
 endif
 
 SDKJS_TAG  := $(if $(sdkjs-branch),$(sdkjs-branch),$(SDKJS_VERSION))
+# Replace '/' from tag name to avoid errors when use the tag as part of file name
+SDKJS_TAG_PATH := $(subst /,_,$(SDKJS_TAG))
 TARGET     := $(PLATFORM)_$(ARCH)
-DEST_DIR   := ./build/$(TARGET)_$(SDKJS_TAG)
+DEST_DIR   := ./build/$(TARGET)_$(SDKJS_TAG_PATH)
 
 # Core project builds' relative dir path
 CORE_DIR := $(abspath $(CWD)/..)
@@ -304,17 +306,20 @@ build: sdkjs ## Assemble x2t converter from Core build artifacts
 	$(MAKE) -f $(THIS_MAKEFILE) allfonts
 
 	# Create zip archive from Converters files
-	cd $(DEST_DIR) && zip -r $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG).zip . $(ZIP_EXCLUDES)
+	cd $(DEST_DIR) && zip -r $(CWD)/build/x2t_$(TARGET)_$(SDKJS_TAG_PATH).zip . $(ZIP_EXCLUDES)
 
 clean: ## Cleanup x2t converter assemblies
-	echo "Clear x2t assembly target dir: $(TARGET)_$(SDKJS_TAG)"
+	echo "Clear x2t assembly target dir: $(TARGET)_$(SDKJS_TAG_PATH)"
 	rm -rf $(SDKJS_DIR)/deploy
 	echo "Clear sdkjs build target dir: $(SDKJS_DIR)/deploy/sdkjs/"
-	rm -rf ./build/$(TARGET)_$(SDKJS_TAG)
+	rm -rf ./build/$(TARGET)_$(SDKJS_TAG_PATH)
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
 	echo SDKJS_VERSION: $(SDKJS_TAG)
+	echo ''
+	echo Build path:
+	echo "  $(DEST_DIR)"
 	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target> <sdkjs-branch>"

@@ -116,7 +116,7 @@ libs: ## Collect all Core component builds artifacts as ZIP
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
 	echo "This Makefile collect OnlyOffice compiled artifacts as ZIP"
-	echo CORE_VERSION: $(CORE_VERSION)
+	echo CORE_VERSION: $(CORE_VERSION), OS: $(OS)
 	echo ''
 	echo "Usage:"
 	echo "  make -f $(THIS_MAKEFILE) <target>"

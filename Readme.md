@@ -1,5 +1,6 @@
-![x2t converter](https://github.com/airslateinc/onlyoffice-core/workflows/X2T/badge.svg)
-![Platforms | OS X | Linux](https://img.shields.io/badge/Platforms-%20OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat)
+[![x2t converter][action badge]][action link]
+![Platforms | OS X | Linux][platform badge]
+[![Core][core badge]][core link]
 
 # OnlyOffice Core (airSlate edition)
 
@@ -26,6 +27,13 @@
 
 [docx_demo_link]: https://artifactory.infrateam.xyz/onlyoffice-core/core/all_fields_sample/sample_fillable_fields.docx
 
+[action link]: https://github.com/airslateinc/onlyoffice-core/actions
+[action badge]: https://github.com/airslateinc/onlyoffice-core/workflows/X2T/badge.svg
+
+[platform badge]: https://img.shields.io/badge/Platforms-%20OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat
+
+[core badge]: https://img.shields.io/badge/OnlyOffice%20Core-v5.6.5-blue.svg?style=flat
+[core link]: https://github.com/airslateinc/onlyoffice-core/compare/airslateinc:airslate/5.4.0.0...HEAD
 ---
 
 [![License](https://img.shields.io/badge/License-GNU%20AGPL%20V3-green.svg?style=flat)](https://www.gnu.org/licenses/agpl-3.0.en.html)     ![x2tconverter](https://img.shields.io/badge/x2tconverter-v2.0.2.376-blue.svg?style=flat) ![Platforms Windows | OS X | Linux](https://img.shields.io/badge/Platforms-Windows%20%7C%20OS%20X%20%7C%20Linux%20-lightgray.svg?style=flat)
