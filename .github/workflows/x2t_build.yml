@@ -175,9 +175,11 @@ jobs:
           jfrog rt dl --flat --recursive \
             onlyoffice-core/core/pdfcompare/* $JFROG_DIR/
 
-      - name: Setup GhostScript (macOS)
+      - name: Setup GhostScript & Boost (macOS)
         if: matrix.osname == 'macOS'
-        run: brew install ghostscript
+        run: |
+          brew install ghostscript
+          brew install boost
 
       - name: Setup GhostScript (Linux)
         if: matrix.osname == 'Linux'
