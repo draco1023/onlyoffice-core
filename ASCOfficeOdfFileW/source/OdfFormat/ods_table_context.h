@@ -59,7 +59,7 @@ public:
 
     unsigned int columns_count();
 
-    ods_table_state & state();
+    ods_table_state_ptr & state();
 	
 	void start_defined_expressions(office_element_ptr & root_elm);
 
@@ -80,15 +80,19 @@ public:
 		void set_data_validation_error(const std::wstring &title, const std::wstring &content, bool display);
 		void set_data_validation_promt(const std::wstring &title, const std::wstring &content, bool display);
 	void end_data_validation();
+
+	void start_pivot_table(const std::wstring &name);
+	void end_pivot_table();
 private:
 
     ods_conversion_context & context_;
 
-	std::vector<ods_table_state>	table_state_list_;
+	std::vector<ods_table_state_ptr> table_state_list_;
 	
 	table_additional_elements_state	table_defined_expressions_;
 	table_additional_elements_state	table_database_ranges_;
 	table_additional_elements_state	table_content_validations_;
+	table_additional_elements_state	table_pivots_;
 
 	size_t count_validations_;
 

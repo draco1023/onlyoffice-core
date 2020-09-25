@@ -49,17 +49,103 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdio.h>
+
+extern char** environ;
+
+char** linux_environ_get(const std::string& str_library_path = "")
+{
+    int count = 0;
+    for (int i = 0; environ[i] != NULL; i++)
+        ++count;
+    count += 2;
+
+    char** env = new char*[count];
+    for (int i = 0; i < count; i++)
+        env[i] = NULL;
+
+    bool is_ld_library_path = false;
+    for (int i = 0; environ[i] != NULL; i++)
+    {
+        std::string s = environ[i];
+        if (0 == s.find("LD_LIBRARY_PATH"))
+        {
+            s += (":" + str_library_path);
+            is_ld_library_path = true;
+        }
+        env[i] = new char[s.length() + 1];
+        memcpy(env[i], s.c_str(), s.length() * sizeof(char));
+        env[i][s.length()] = '\0';
+    }
+    if (!is_ld_library_path)
+    {
+        int index = count - 2;
+        std::string s = "LD_LIBRARY_PATH=";
+        s += str_library_path;
+        env[index] = new char[s.length() + 1];
+        memcpy(env[index], s.c_str(), s.length() * sizeof(char));
+        env[index][s.length()] = '\0';
+    }
+    return env;
+}
+void linux_environ_clear(char** data)
+{
+    for (int i = 0; data[i] != NULL; i++)
+        delete [] data[i];
+    delete [] data;
+}
+void linux_environ_print(char** env)
+{
+    std::wstring file = NSFile::GetProcessDirectory() + L"/env.log";
+    std::string fileA = U_TO_UTF8(file);
+    for (int i = 0; env[i] != NULL; i++)
+    {
+        FILE* f = fopen(fileA.c_str(), "a+");
+        std::string s = env[i];
+
+        // replace %%
+        size_t posn = 0;
+        while (std::string::npos != (posn = s.find("%", posn)))
+        {
+            s.replace(posn, 1, "%%");
+            posn += 2;
+        }
+
+        fprintf(f, s.c_str());
+        fprintf(f, "\n");
+        fclose(f);
+    }
+}
+
 #endif
 
 class CHtmlFile_Private
 {
 public:
     bool m_bIsEpub;
+    std::wstring m_sHtmlFileInternal;
 
 public:
     CHtmlFile_Private()
     {
         m_bIsEpub = false;
+        m_sHtmlFileInternal = L"";
+
+        std::wstring sProcessPath = NSFile::GetProcessDirectory();
+        std::wstring sPathConfig = sProcessPath + L"/DoctRenderer.config";
+        if (NSFile::CFileBinary::Exists(sPathConfig))
+        {
+            XmlUtils::CXmlNode oNode;
+            if (oNode.FromXmlFile(sPathConfig))
+            {
+                std::wstring sPath = oNode.ReadValueString(L"htmlfileinternal");
+                if (!sPath.empty())
+                {
+                    if (0 == sPath.find(L"./"))
+                        sPath = sProcessPath + sPath.substr(1);
+                    m_sHtmlFileInternal = sPath;
+                }
+            }
+        }
     }
 };
 
@@ -224,9 +310,9 @@ static void GetScriptsPath(NSStringUtils::CStringBuilder& oBuilder)
     }
 }
 
-int CHtmlFile::Convert(const std::vector<std::wstring>& arFiles, const std::wstring& sDstfolder, const std::wstring& sPathInternal)
+int CHtmlFile::Convert(const std::vector<std::wstring>& arFiles, const std::wstring& sDstfolder)
 {
-    std::wstring sInternal = sPathInternal;
+    std::wstring sInternal = m_internal->m_sHtmlFileInternal;
     if (sInternal.empty())
         sInternal = NSFile::GetProcessDirectory() + L"/HtmlFileInternal/";
 
@@ -413,10 +499,11 @@ int CHtmlFile::Convert(const std::vector<std::wstring>& arFiles, const std::wstr
         std::string::size_type posLast = sProgramm.find_last_of('/');
         std::string sProgrammDir = sProgramm.substr(0, posLast);
         if (std::string::npos != posLast)
-            sLibraryDir = "LD_LIBRARY_PATH=" + sProgrammDir + ":" + sProgrammDir + "/../";
+            sLibraryDir = sProgrammDir + ":" + sProgrammDir + "/../";
 
         if (!IsLinuxXVFB())
         {
+            sLibraryDir = "LD_LIBRARY_PATH=" + sLibraryDir;
             const char* nargs[2];
             nargs[0] = sXmlA.c_str();
             nargs[1] = NULL;
@@ -442,12 +529,17 @@ int CHtmlFile::Convert(const std::vector<std::wstring>& arFiles, const std::wstr
             nargs[4] = sXmlA.c_str();
             nargs[5] = NULL;
 
+            /*
             const char* nenv[4];
             nenv[0] = sLibraryDir.c_str();
             nenv[1] = NULL;//"DISPLAY=:99";
             nenv[2] = NULL;
+            */
 
-            execve("/usr/bin/xvfb-run", (char * const *)nargs, (char * const *)nenv);
+            char** env = linux_environ_get(sLibraryDir);
+            //linux_environ_print(env);
+            execve("/usr/bin/xvfb-run", (char * const *)nargs, (char * const *)env);
+            linux_environ_clear(env);
             exit(EXIT_SUCCESS);
         }
 
@@ -635,7 +727,7 @@ static std::vector<std::wstring> ParseEpub(const std::wstring& sPackagePath, std
     return arHtmls;
 }
 
-int CHtmlFile::ConvertEpub(const std::wstring& sFolder, std::wstring& sMetaInfo, const std::wstring& sDstfolder, const std::wstring& sPathInternal)
+int CHtmlFile::ConvertEpub(const std::wstring& sFolder, std::wstring& sMetaInfo, const std::wstring& sDstfolder)
 {
     std::wstring sFolderWithSlash = sFolder;
     NSStringExt::Replace(sFolderWithSlash, L"\\", L"/");
@@ -691,7 +783,7 @@ int CHtmlFile::ConvertEpub(const std::wstring& sFolder, std::wstring& sMetaInfo,
         return 1;
 
     m_internal->m_bIsEpub = true;
-    int nErr = this->Convert(arHtmls, sDstfolder, sPathInternal);
+    int nErr = this->Convert(arHtmls, sDstfolder);
     m_internal->m_bIsEpub = false;
     return nErr;
 }
@@ -1399,7 +1491,7 @@ namespace NSMht
     };
 }
 
-int CHtmlFile::ConvertMht(const std::wstring& sFile, const std::wstring& sDstfolder, const std::wstring& sPathInternal)
+int CHtmlFile::ConvertMht(const std::wstring& sFile, const std::wstring& sDstfolder)
 {
     NSMht::CMhtFile oFile;
     oFile.Parse(sFile);
@@ -1408,5 +1500,5 @@ int CHtmlFile::ConvertMht(const std::wstring& sFile, const std::wstring& sDstfol
 
     std::vector<std::wstring> arFiles;
     arFiles.push_back(sFileMht);
-    return this->Convert(arFiles, sDstfolder, sPathInternal);
+    return this->Convert(arFiles, sDstfolder);
 }

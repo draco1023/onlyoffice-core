@@ -186,6 +186,17 @@ public:
                 return 1500;
         }
 
+        return IsEqualsFontsAdvanced(name, req) ? 3000 : 10000;
+    }
+
+    static bool IsEqualsFontsAdvanced(const std::wstring& name, const std::wstring& req)
+    {
+        int lenName = (int)name.length();
+        int lenReq = (int)req.length();
+
+        const wchar_t* pName = name.c_str();
+        const wchar_t* pReq = req.c_str();
+
         pName = name.c_str();
         pReq = req.c_str();
 
@@ -232,7 +243,7 @@ public:
         delete [] pNameD;
         delete [] pReqD;
 
-        return bIsEq ? 3000 : 10000;
+        return bIsEq;
     }
 };
 
@@ -273,7 +284,7 @@ private:
 	int GetCharsetPenalty(ULONG ulCandRanges[6], unsigned char unReqCharset);
 	int GetSigPenalty(ULONG ulCandRanges[6], ULONG ulReqRanges[6], double dRangeWeight = 1, double dRangeWeightSuferflouous = 0);
     int GetFixedPitchPenalty(INT bCandFixed, INT bReqFixed);
-    int GetFaceNamePenalty(std::wstring sCandName, std::wstring sReqName, bool bIsUseNamePicker = false);
+    int GetFaceNamePenalty(const std::wstring& sCandName, const std::wstring& sReqName, bool bIsUseNamePicker = false);
 	int GetFamilyUnlikelyPenalty(SHORT nCandFamilyClass, SHORT nReqFamilyClass);
 	int GetFamilyUnlikelyPenalty(int nCandFamilyClass, std::wstring sReqFamilyClass);
 	int GetWidthPenalty(USHORT usCandWidth, USHORT usReqWidth);
@@ -302,6 +313,7 @@ public:
     std::vector<NSFonts::CFontInfo*> GetAllByName (const std::wstring& strFontName);
 
     std::wstring GetFontBySymbol(int symbol);
+    void InitializeRanges(unsigned char* data);
 };
 
 class CApplicationFonts : public NSFonts::IApplicationFonts
@@ -322,6 +334,7 @@ public:
 
     void InitializeFromFolder(std::wstring strFolder, bool bIsCheckSelection = true);
     void Initialize(bool bIsCheckSelection = true);
+    void InitializeRanges(unsigned char* data);
       
 	std::vector<std::wstring> GetSetupFontFiles();
 	void InitializeFromArrayFiles(std::vector<std::wstring>& files, int nFlag = 0);

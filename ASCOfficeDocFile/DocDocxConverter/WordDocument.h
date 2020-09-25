@@ -92,7 +92,7 @@ namespace DocFileFormat
 
 	public:
 
-		WordDocument (const ProgressCallback* pCallFunc, const std::wstring & tempFolder );
+		WordDocument (const ProgressCallback* pCallFunc, const std::wstring & tempFolder, const int userLCID);
 		virtual ~WordDocument();
 
 		_UINT32 LoadDocument(const std::wstring & fileName, const std::wstring & password);
@@ -153,6 +153,7 @@ namespace DocFileFormat
 		std::wstring			m_sPassword;	
 		std::wstring			m_sTempFolder;
 		std::wstring			m_sTempDecryptFileName;
+		int						m_nUserLCID;
 
 		const ProgressCallback* m_pCallFunc;
 	
@@ -218,7 +219,7 @@ namespace DocFileFormat
 		Plex<Spa>							*OfficeDrawingPlex;
 		Plex<Spa>							*OfficeDrawingPlexHeader;
 		
-		Plex<SectionDescriptor>				*SectionPlex;						// A Plex containing all section descriptors
+		Plex<SectionDescriptor>				*SectionPlex;	
 	
 		Plex<BookmarkFirst>					*BookmarkStartPlex;
 		Plex<EmptyStructure>				*BookmarkEndPlex;
@@ -233,9 +234,9 @@ namespace DocFileFormat
 		Plex<FieldCharacter>				*HeadersAndFootersDocumentFieldsPlex;
 		Plex<FieldCharacter>				*AnnotationsFieldsPlex;
 		Plex<AnnotationReferenceDescriptor> *AnnotationsReferencePlex;
-		Plex<AnnotationReferenceExDescriptor> *AnnotationsReferenceExPlex;
 		Plex<EmptyStructure>				*AutoTextPlex;		
-		// Each character position specifies the beginning of a range of text that constitutes the contents of an AutoText item
+		
+		AnnotationReferenceExDescriptors	*AnnotationsReferencesEx;
 		
 	};
 }

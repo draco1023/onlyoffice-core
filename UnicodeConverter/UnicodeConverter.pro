@@ -15,14 +15,23 @@ include(../Common/base.pri)
 
 DEFINES += UNICODECONVERTER_USE_DYNAMIC_LIBRARY
 
-core_linux {
-    QMAKE_LFLAGS += -Wl,--rpath=./
+core_linux {    
+    QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
+    QMAKE_LFLAGS += -Wl,--disable-new-dtags
 }
 
-include(../Common/3dParty/icu/icu.pri)
+core_ios {
+    CONFIG += core_disable_icu
 
-SOURCES += \
-    UnicodeConverter.cpp
+    OBJECTIVE_SOURCES += UnicodeConverter_internal_ios.mm
+}
+
+!core_disable_icu {
+    include(../Common/3dParty/icu/icu.pri)
+
+    SOURCES += \
+        UnicodeConverter.cpp
+}
 
 HEADERS +=\
     UnicodeConverter.h

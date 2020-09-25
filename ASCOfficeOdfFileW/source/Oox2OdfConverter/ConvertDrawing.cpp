@@ -459,7 +459,7 @@ void OoxConverter::convert(PPTX::Logic::ChartRec *oox_chart)
 				odf_context()->drawing_context()->start_group();
 
 				odf_context()->drawing_context()->set_group_size (width, height, width, height);
-				odf_context()->drawing_context()->set_group_position (x, y, 0, 0);
+				odf_context()->drawing_context()->set_group_position (x, y, 0., 0.);
 				
 				odf_context()->drawing_context()->start_drawing();
 				odf_context()->drawing_context()->set_position (zero, zero);
@@ -848,11 +848,6 @@ void OoxConverter::convert(OOX::Drawing::COfficeArtExtension *art_ext)
 		{		
 			xlsx_converter->convert(art_ext->m_oSparklineGroups.GetPointer());
 			xlsx_converter->convert(art_ext->m_oAltTextTable.GetPointer());
-		
-			for (size_t i = 0; i < art_ext->m_arrConditionalFormatting.size(); i++)
-			{
-				xlsx_converter->convert(art_ext->m_arrConditionalFormatting[i]);
-			}	
 		}
 	}
 

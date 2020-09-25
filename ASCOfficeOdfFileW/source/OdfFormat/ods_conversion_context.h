@@ -108,13 +108,14 @@ public:
 		void set_data_validation_error(const std::wstring &title, const std::wstring &content, bool display);
 		void set_data_validation_promt(const std::wstring &title, const std::wstring &content, bool display);
 	void end_data_validation();
+
 //-----------------------------------------------------------------------
-	ods_table_state & current_table() { return table_context_.state();}
+	ods_table_state_ptr & current_table() { return table_context_.state();}
 //-----------------------------------------------------------------------
 	virtual void start_text_context();
 	virtual void end_text_context();
 
-	virtual odf_drawing_context		* drawing_context()	{return current_table().drawing_context();}
+	virtual odf_drawing_context		* drawing_context()	{return current_table()->drawing_context();}
 	virtual odf_text_context		* text_context()	{return current_text_context_;}
 	
 	void start_drawings();
@@ -140,6 +141,9 @@ public:
 	void end_table_part		();
 	void set_table_part_autofilter(bool val);
 	void add_table_part_column(std::wstring name);
+
+	void start_pivot_table(const std::wstring &name);
+	void end_pivot_table();
 
 	void start_conditional_formats();
 	void end_conditional_formats(){}

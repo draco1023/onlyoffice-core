@@ -1,57 +1,19 @@
-INCLUDEPATH += $$PWD/boost_1_58_0
-
-MSVC = vc140
-
-CORE_BOOST_LIBS = $$PWD/boost_1_58_0/build/$$CORE_BUILDS_PLATFORM_PREFIX/static
-
-core_boost_fpic {
-    CORE_BOOST_LIBS = $$PWD/boost_1_58_0/build/$$CORE_BUILDS_PLATFORM_PREFIX/static_fpic
-}
-core_boost_shared {
-    CORE_BOOST_LIBS = $$PWD/boost_1_58_0/build/$$CORE_BUILDS_PLATFORM_PREFIX/shared
-}
-
-core_boost_libs {
+INCLUDEPATH += $$PWD/build/$$CORE_BUILDS_PLATFORM_PREFIX/include
+CORE_BOOST_LIBS = $$PWD/build/$$CORE_BUILDS_PLATFORM_PREFIX/lib
 
 core_windows {
-core_debug {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_system-$$MSVC-mt-gd-1_58 -llibboost_filesystem-$$MSVC-mt-gd-1_58
-}
-core_release {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_system-$$MSVC-mt-1_58 -llibboost_filesystem-$$MSVC-mt-1_58
-}
+    core_win_64:BOOST_POSTFIX = -vc140-mt-x64-1_72
+    core_win_32:BOOST_POSTFIX = -vc140-mt-x32-1_72
+    core_debug {
+        core_win_64:BOOST_POSTFIX = -vc140-mt-gd-x64-1_72
+        core_win_32:BOOST_POSTFIX = -vc140-mt-gd-x32-1_72
+    }
+
+    core_boost_libs:LIBS += -L$$CORE_BOOST_LIBS -llibboost_system$$BOOST_POSTFIX -llibboost_filesystem$$BOOST_POSTFIX
+    core_boost_regex:LIBS += -L$$CORE_BOOST_LIBS -llibboost_regex$$BOOST_POSTFIX
+    core_boost_date_time:LIBS += -L$$CORE_BOOST_LIBS -llibboost_date_time$$BOOST_POSTFIX
 } else {
-    LIBS += -L$$CORE_BOOST_LIBS -lboost_system -lboost_filesystem
-}
-
-}
-
-core_boost_regex {
-
-core_windows {
-core_debug {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_regex-$$MSVC-mt-gd-1_58
-}
-core_release {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_regex-$$MSVC-mt-1_58
-}
-} else {
-    LIBS += -L$$CORE_BOOST_LIBS -lboost_regex
-}
-
-}
-
-core_boost_date_time {
-
-core_windows {
-core_debug {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_date_time-$$MSVC-mt-gd-1_58
-}
-core_release {
-    LIBS += -L$$CORE_BOOST_LIBS -llibboost_date_time-$$MSVC-mt-1_58
-}
-} else {
-    LIBS += -L$$CORE_BOOST_LIBS -lboost_date_time
-}
-
+    core_boost_libs:LIBS += -L$$CORE_BOOST_LIBS -lboost_system -lboost_filesystem
+    core_boost_regex:LIBS += -L$$CORE_BOOST_LIBS -lboost_regex
+    core_boost_date_time:LIBS += -L$$CORE_BOOST_LIBS -lboost_date_time
 }

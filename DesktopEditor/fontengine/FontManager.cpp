@@ -104,7 +104,19 @@ NSFonts::IFontStream* CApplicationFontStreams::GetStream(const std::wstring &str
 }
 void CApplicationFontStreams::CheckStreams(std::map<std::wstring,bool> &mapFiles)
 {
-	// TODO:
+    std::map<std::wstring, CFontStream*>::iterator iter = m_mapStreams.begin();
+    while (iter != m_mapStreams.end())
+    {
+        CFontStream* pFile = iter->second;
+
+        if (mapFiles.find(iter->first) != mapFiles.end())
+        {
+            iter = m_mapStreams.erase(iter);
+            RELEASEINTERFACE(pFile);
+        }
+        else
+            iter++;
+    }
 }
 
 void CApplicationFontStreams::Clear()
@@ -686,9 +698,9 @@ INT CFontManager::LoadFontFromFile(const std::wstring& sPath, const int& lFaceIn
 	m_pFont->SetSizeAndDpi(dSize, (UINT)dDpiX, (UINT)dDpiY);
 
     m_sName = L"";
-    if (m_pFont->m_pFace && m_pFont->m_pFace->family_name)
+    if (m_pFont->m_pFace)
     {
-        m_pFont->m_sName = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)m_pFont->m_pFace->family_name, strlen(m_pFont->m_pFace->family_name));
+        m_pFont->m_sName = GetCorrectSfntName(m_pFont->m_pFace->family_name);
         m_sName = m_pFont->m_sName;
     }
 
@@ -710,9 +722,10 @@ INT CFontManager::LoadFontFromFile2(NSFonts::IFontsCache* pCache, const std::wst
 	m_pFont->SetSizeAndDpi(dSize, (UINT)dDpiX, (UINT)dDpiY);
 
     m_sName = L"";
-    if (m_pFont->m_pFace && m_pFont->m_pFace->family_name)
+    if (m_pFont->m_pFace)
     {
-        m_sName = NSFile::CUtf8Converter::GetUnicodeStringFromUTF8((BYTE*)m_pFont->m_pFace->family_name, strlen(m_pFont->m_pFace->family_name));
+        m_pFont->m_sName = GetCorrectSfntName(m_pFont->m_pFace->family_name);
+        m_sName = m_pFont->m_sName;
     }
 
 	return TRUE;

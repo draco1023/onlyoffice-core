@@ -37,7 +37,8 @@ namespace XLS
 
 Row::Row()
 {
-	iOutLevel = ixfe_val = 0;
+	iOutLevel = 0;
+	ixfe_val = 0;
 }
 
 
@@ -56,10 +57,9 @@ void Row::readFields(CFRecord& record)
 	global_info_ = record.getGlobalWorkbookInfo();
 	record >> rw >> colMic >> colMac >> miyRw;
 
-	record.skipNunBytes(4); // reserved / unused
+	unsigned short flags, flags2, reserved1, unused1;
 
-	unsigned short flags;
-	record >> flags;
+	record >> reserved1 >> unused1 >> flags >> flags2;
 	
 	iOutLevel	= GETBITS(flags, 0, 2);
 	fCollapsed	= GETBIT(flags, 4);
@@ -67,12 +67,12 @@ void Row::readFields(CFRecord& record)
 	fUnsynced	= GETBIT(flags, 6);
 	fGhostDirty = GETBIT(flags, 7);
 
-	record >> flags;
+	ixfe_val	= GETBITS(flags2, 0, 11);
+	fExAsc		= GETBIT(flags2, 12);
+	fExDes		= GETBIT(flags2, 13);
+	fPhonetic	= GETBIT(flags2, 14);
 
-	ixfe_val	= GETBITS(flags, 0, 11);
-	fExAsc		= GETBIT(flags, 12);
-	fExDes		= GETBIT(flags, 13);
-	fPhonetic	= GETBIT(flags, 14);
+	bValid = (flags != 0 || flags2 != 0);
 }
 
 int Row::serialize(std::wostream &stream)
@@ -86,7 +86,11 @@ int Row::serialize(std::wostream &stream)
 			bool xf_set = true;
 			if (fGhostDirty == false) xf_set = false;
 			
-			if (xf_set)
+			if (colMic >= 0 && colMac > colMic)
+			{
+				CP_XML_ATTR(L"spans", std::to_wstring(colMic + 1) + L":" + std::to_wstring(colMac));
+			}
+			if (xf_set && bValid)
 			{
 				int xf = ixfe_val >= global_info_->cellStyleXfs_count ? ixfe_val - global_info_->cellStyleXfs_count : -1/*ixfe_val*/;
 				
@@ -96,7 +100,8 @@ int Row::serialize(std::wostream &stream)
 					CP_XML_ATTR(L"customFormat", true);
 				}
 			}
-			if (miyRw > 0/* && std::abs(miyRw/20. - sheet_info.defaultRowHeight) > 0.01*/)
+			if (miyRw > 0 && miyRw < 0x8000 && bValid && 
+				((fUnsynced && fGhostDirty) || !fGhostDirty))
 			{
 				CP_XML_ATTR(L"ht", miyRw / 20.);
 				CP_XML_ATTR(L"customHeight", true);

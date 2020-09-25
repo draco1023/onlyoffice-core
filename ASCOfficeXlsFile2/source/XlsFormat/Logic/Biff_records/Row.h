@@ -56,8 +56,11 @@ public:
 
 //-----------------------------
 	Rw			rw;
-	BackwardOnlyParam<unsigned short> colMic;
-	BackwardOnlyParam<unsigned short> colMac;
+	//BackwardOnlyParam<unsigned short> colMic;
+	//BackwardOnlyParam<unsigned short> colMac;
+
+	unsigned short colMic;
+	unsigned short colMac;
 	
 	_UINT16		miyRw;
 
@@ -71,8 +74,9 @@ public:
 	bool			fExAsc;
 	bool			fExDes;
 	bool			fPhonetic;
+
+	bool			bValid;
 	
-	BackwardOnlyParam<_UINT32> in_block_position;
 };
 
 } // namespace XLS
