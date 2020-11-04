@@ -89,6 +89,11 @@ jobs:
           unzip -u $JFROG_DIR/common_builds.zip -d ${{ github.workspace }}/
           unzip -u $JFROG_DIR/core_builds.zip -d ${{ github.workspace }}/
 
+          # Fetch additional fonts
+          jfrog rt dl --flat --recursive onlyoffice-core/core/au_fonts/* $JFROG_DIR/au_fonts/
+
+          unzip -u $JFROG_DIR/au_fonts/*.zip -d ${{ github.workspace }}/additional_fonts
+
       - name: Assemble OnlyOffice Converter
         working-directory: X2tConverter
         run: |
