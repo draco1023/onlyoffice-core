@@ -115,6 +115,9 @@ SDKJS_PARAMS  = --force --base build --gruntfile build/Gruntfile.js
 CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
 CORE_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-core-fonts)
 
+# All additional fonts must be into this directory
+ADDITIONAL_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/additional_fonts)
+
 # X2T Converter requred dirs
 X2T_REQ_DIRS += result
 X2T_REQ_DIRS += source
@@ -193,7 +196,7 @@ define LOGO
                                                                  
 endef
 
-.PHONY: help build sdkjs allfonts clean
+.PHONY: help build sdkjs allfonts clean test
 
 # Run this makefile help by default
 .DEFAULT_GOAL = help
@@ -252,7 +255,13 @@ allfonts: core_fonts ## Generate Allfonts.js for converter
 	find $(CORE_FONTS_DIR)/ -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts/ ";"
 	echo "$@: Copy Core Fonts from $(CORE_FONTS_DIR) -> $(DEST_DIR)/fonts"
 
-	echo "$@: Generating Allfonts.js from $(CORE_FONTS_DIR)"
+	# Copy additional fonts if exists
+	[ -d $(ADDITIONAL_FONTS_DIR) ] \
+		&& find $(ADDITIONAL_FONTS_DIR)/ -type f -name *.ttf -exec cp {} $(DEST_DIR)/fonts/ ";" \
+		&& echo "$@: Copy Additional Fonts from $(ADDITIONAL_FONTS_DIR) -> $(DEST_DIR)/fonts" \
+		|| echo "$@: No Additional Fonts... Skip copy step"
+
+	echo "$@: Generating Allfonts.js from $(DEST_DIR)/fonts"
 	# Generate AllFonts.js, font thumbnails and font_selection.bin
 	cd $(DEST_DIR) && ./allfontsgen \
 	--input="./fonts;" \
@@ -313,6 +322,11 @@ clean: ## Cleanup x2t converter assemblies
 	rm -rf $(SDKJS_DIR)/deploy
 	echo "Clear sdkjs build target dir: $(SDKJS_DIR)/deploy/sdkjs/"
 	rm -rf ./build/$(TARGET)_$(SDKJS_TAG_PATH)
+
+test: ## Run xt2 converter simple test
+	echo "$@: Runs x2t converter without any input documents"
+
+	cd $(DEST_DIR) && ./x2t
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
