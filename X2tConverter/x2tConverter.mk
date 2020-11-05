@@ -53,7 +53,8 @@ ZIP_EXCLUDES := -x ".*" -x "__MACOSX" -x "*.DS_Store"
 ifneq ("$(wildcard ./SDKJS_VERSION)","")
 SDKJS_VERSION ?= $(shell cat ./SDKJS_VERSION | head -n 1)
 else
-SDKJS_VERSION ?= ovm_fillable_fields
+# Use the first version of SDKJS with supporting of extract fillable fields
+SDKJS_VERSION ?= ovm_fillable_fields_old
 endif
 
 SDKJS_TAG  := $(if $(sdkjs-branch),$(sdkjs-branch),$(SDKJS_VERSION))
@@ -67,6 +68,8 @@ CORE_DIR := $(abspath $(CWD)/..)
 CORE_BIN := ./build/bin/$(TARGET)
 CORE_LIB := ./build/lib/$(TARGET)
 CORE_3DPARTY := ./Common/3dParty
+
+ARTIFACTORY_DIR := $(abspath $(CORE_DIR)/.artifactory)
 
 # Core binaries
 BUILT_ARTIFACT += $(CORE_BIN)/x2t
@@ -96,7 +99,7 @@ BUILT_ARTIFACT += $(CORE_3DPARTY)/icu/$(TARGET)/build/libicu*
 
 # SDKJS SRC repository url
 SDKJS_SRC_URL := git@github.com:airslateinc/onlyoffice-sdkjs.git
-SDKJS_DIR     := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-sdkjs)
+SDKJS_DIR     := $(ARTIFACTORY_DIR)/onlyoffice-sdkjs
 SDK_BUILD_NUMBER := 0
 SDK_PRODUCT_VERSION := 0
 
@@ -113,10 +116,14 @@ SDKJS_PARAMS  = --force --base build --gruntfile build/Gruntfile.js
 
 # Core fonts SRC repository url
 CORE_FONTS_SRC_URL := git@github.com:airslateinc/onlyoffice-core-fonts.git
-CORE_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/onlyoffice-core-fonts)
+CORE_FONTS_DIR := $(ARTIFACTORY_DIR)/onlyoffice-core-fonts
+
 
 # All additional fonts must be into this directory
-ADDITIONAL_FONTS_DIR := $(abspath $(CORE_DIR)/.artifactory/additional_fonts)
+ADDITIONAL_FONTS_DIR := $(ARTIFACTORY_DIR)/additional_fonts
+
+# All test documents and supplied files must be into this directory
+TEST_SRC_DIR := $(ARTIFACTORY_DIR)/test_documents
 
 # X2T Converter requred dirs
 X2T_REQ_DIRS += result
@@ -124,6 +131,15 @@ X2T_REQ_DIRS += source
 X2T_REQ_DIRS += fonts
 X2T_REQ_DIRS += sdkjs/vendor/jquery
 X2T_REQ_DIRS += sdkjs/vendor/xregexp
+
+define check_jfrog
+	if test ! "$(shell jfrog --version 2>/dev/null)"; then \
+		>&2 printf "jFrog does not exist. Can not working with Artifactory.\n"; \
+		>&2 printf "Please install 'jfrog-cli' from: https://jfrog.com/getcli\n"; \
+		>&2 printf "Aborting.\n"; \
+		exit 1; \
+	fi
+endef
 
 define DOCT_RENDERER_CONFIG
 <Settings>
@@ -323,10 +339,44 @@ clean: ## Cleanup x2t converter assemblies
 	echo "Clear sdkjs build target dir: $(SDKJS_DIR)/deploy/sdkjs/"
 	rm -rf ./build/$(TARGET)_$(SDKJS_TAG_PATH)
 
-test: ## Run xt2 converter simple test
-	echo "$@: Runs x2t converter without any input documents"
+test: ## Run xt2 converter acceptance test
+	echo "$@: Runs x2t converter for DOCX file with OLE fillable fields"
 
-	cd $(DEST_DIR) && ./x2t
+	# Download test files from Artifactory if not exists
+	if [ ! -f "$(TEST_SRC_DIR)"/sample_fillable_fields.docx ]; then \
+		$(call check_jfrog)
+		jfrog rt dl --flat --recursive \
+			onlyoffice-core/core/test_documents/all_fields_sample/* $(TEST_SRC_DIR)/
+	fi
+
+	# Download PDFComparer
+	if [ ! -f "$(ARTIFACTORY_DIR)"/pdfcompare.jar ]; then \
+		$(call check_jfrog)
+			jfrog rt dl --flat --recursive onlyoffice-core/core/pdfcompare/* $(ARTIFACTORY_DIR)/
+	fi
+
+	cp $(TEST_SRC_DIR)/sample_fillable_fields.docx $(DEST_DIR)/source/sample_fillable_fields.docx
+
+	# Create test.xml
+	echo "$@: Write test run params -> $(DEST_DIR)/test.xml"
+	echo "$${PARAMS_XML}" > $(DEST_DIR)/test.xml
+	
+	sed -i '' 's/input.docx/sample_fillable_fields.docx/g' $(DEST_DIR)/test.xml
+	sed -i '' 's/output.pdf/sample_fillable_fields.pdf/g' $(DEST_DIR)/test.xml
+
+	echo "$@: Run converer test: DOCX -> PDF"
+	cd $(DEST_DIR) && ./x2t ./test.xml
+	
+	# Extract fields from PDF
+	cat -v ./result/sample_fillable_fields.pdf | grep -E '{\"fontFamily' > ./result/sample_fillable_fields.txt
+
+	# Workaround for magic behaviour of SDKJS with `pageNum` written as "BSa" or "NOa"
+	# On workers, if there is no pageNum, we copying "BSa" -> "pageNum" and renaming "BSa" to "NOa"
+	# For tests we expects always explicit behaviour when "pageNumber" and "BSa" are present
+	sed -i '' 's/"NOa"/"BSa"/g' ./result/sample_fillable_fields.txt
+	
+	echo "$@: Compare extracted fillable fields with expected -> $(DEST_DIR)/result/sample_fillable_fields.txt"
+	git --no-pager diff --no-index $(TEST_SRC_DIR)/sample_fillable_fields_expected.txt ./result/sample_fillable_fields.txt
 
 ---: ## --------------------------------------------------------------
 help: .logo ## Show this help and exit
