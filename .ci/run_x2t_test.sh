@@ -29,6 +29,12 @@ function compare_fields() {
 (>&1 echo "Searching Json fields into PDF...")
 extract_fields "$X2T_BUILD"/"$1"/result/output.pdf > "$X2T_BUILD"/"$1"/result/fields_"$1".txt
 
+(>&1 echo "Fixing SDKJS mystical behaviour with pageNumber...")
+# Workaround for magic behaviour of SDKJS with `pageNum` written as "BSa" or "NOa"
+# On workers, if there is no pageNum, we copying "BSa" -> "pageNum" and renaming "BSa" to "NOa"
+# For tests we expects always explicit behaviour when "pageNumber" and "BSa" are present
+sed -i '' 's/"NOa"/"BSa"/g' "$ACTUAL_JSON"
+
 (>&1 echo "Compare reference Json file with fields from PDF...")
 compare_fields "$EXPECTED_JSON" "$ACTUAL_JSON"
 
