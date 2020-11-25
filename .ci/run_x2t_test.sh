@@ -26,9 +26,6 @@ function compare_fields() {
 	local expected="$1"
 	local actual="$2"
 
-	# Temporary remove "pageNum":1 from fileds because we need to fix it in SDKJS
-	sed -i '' 's/,"pageNum":1//g' "$expected"
-
 	diff -s -B "$expected" "$actual"
 }
 
