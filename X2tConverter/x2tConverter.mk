@@ -374,6 +374,7 @@ test: ## Run xt2 converter acceptance test
 	# On workers, if there is no pageNum, we copying "BSa" -> "pageNum" and renaming "BSa" to "NOa"
 	# For tests we expects always explicit behaviour when "pageNumber" and "BSa" are present
 	sed -i '' 's/"NOa"/"BSa"/g' ./result/sample_fillable_fields.txt
+	sed -i '' 's/,"pageNum":1//g' ./result/sample_fillable_fields.txt
 	
 	echo "$@: Compare extracted fillable fields with expected -> $(DEST_DIR)/result/sample_fillable_fields.txt"
 	git --no-pager diff --no-index $(TEST_SRC_DIR)/sample_fillable_fields_expected.txt ./result/sample_fillable_fields.txt
