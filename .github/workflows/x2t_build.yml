@@ -122,6 +122,8 @@ jobs:
 
   test:
     needs: build
+    # Disable test for macOS, needs to recompile and sort out with linking of Boost
+    if: startsWith(runner.os, 'Linux')
     name: Test on ${{ matrix.osname }}
     runs-on: ${{ matrix.os }}
 
